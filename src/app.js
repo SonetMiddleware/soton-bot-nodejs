@@ -9,6 +9,11 @@ import {
 } from "./bot/handlers/payment.js";
 import handleStart from "./bot/handlers/start.js";
 import { bind1WithWeb3Proof, createProposal, vote } from "./api/index.js";
+import server from "./express.js";
+const port = 3000;
+server.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
 dotenv.config();
 const delay = async (time) => {
   return new Promise((resolve, reject) => {
@@ -24,7 +29,7 @@ const msgHandler = async (msg, ctx) => {
     const msgData = JSON.parse(msg.data);
     const { type, data } = msgData;
     if (type && type === "bind_addr") {
-      ctx.relay("Binding address...");
+      await ctx.relay("Binding address...");
       const author = await ctx.getAuthor();
       const { user } = author;
       const { address } = data;
@@ -37,27 +42,26 @@ const msgHandler = async (msg, ctx) => {
       });
       console.log(res);
       if (res) {
-        ctx.reply("Bind success");
+        return ctx.reply("Bind success");
       } else {
-        ctx.reply("Bind failed.");
+        return ctx.reply("Bind failed.");
       }
     } else if (type === "create_proposal") {
-      ctx.reply("Creating proposal");
-      const params = {};
-      const res = await createProposal(params);
+      await ctx.reply("Creating proposal");
+      const res = await createProposal(data);
+      console.log(JSON.stringify(res));
       if (res.code === 0) {
-        ctx.reply("Create proposal successfully.");
+        return ctx.reply("Create proposal successfully.");
       } else {
-        ctx.reply("Create proposal failed");
+        return ctx.reply("Create proposal failed");
       }
     } else if (type === "vote") {
-      ctx.reply("Submitting vote...");
-      const params = {};
-      const res = await vote(params);
-      if (res.code === 0) {
-        ctx.reply("Vote successfully.");
+      await ctx.reply("Submitting vote...");
+      const res = await vote(data);
+      if (res) {
+        return ctx.reply("Vote successfully.");
       } else {
-        ctx.reply("Vote failed");
+        return ctx.reply("Vote failed");
       }
     }
   } catch (e) {
@@ -87,7 +91,7 @@ async function runApp() {
    * 3. bind address with user id
    * 4. if bind. Vote from bot with address.
    */
-  bot.command("register", async (ctx) => {
+  bot.command("start", async (ctx) => {
     console.log("register");
     console.log(ctx.chat);
     const author = await ctx.getAuthor();
@@ -99,12 +103,12 @@ async function runApp() {
       //   Markup.button.url("❤️", "http://telegraf.js.org"),
       //   Markup.button.callback("Delete", "delete"),
       // ])
-      // Markup.inlineKeyboard([
-      //   Markup.button.webApp("Login", "https://twa.soton.sonet.one/"),
-      // ]),
-      Markup.keyboard([
+      Markup.inlineKeyboard([
         Markup.button.webApp("Login", "https://twa.soton.sonet.one/"),
       ])
+      // Markup.keyboard([
+      //   Markup.button.webApp("Soton", "https://twa.soton.sonet.one/"),
+      // ])
     );
   });
 
@@ -123,7 +127,7 @@ async function runApp() {
     }
   });
   // Register all handelrs
-  bot.command("start", handleStart);
+  // bot.command("start", handleStart);
   // bot.on("message", (ctx) => {
   //   console.log("ctx: ", ctx.chat);
   // });
@@ -138,6 +142,9 @@ async function runApp() {
   // bot.start();
   bot.start();
   console.info(`Bot @${bot.botInfo.username} is up and running`);
+  bot.catch = (e) => {
+    console.log("catch: ", e);
+  };
 }
 
 void runApp();

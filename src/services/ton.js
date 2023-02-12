@@ -1,5 +1,4 @@
 import { HttpApi, fromNano, toNano } from "ton";
-
 export async function verifyTransactionExistance(toWallet, value, comment) {
   const endpoint =
     process.env.NETWORK === "mainnet"
@@ -27,8 +26,8 @@ export async function verifyTransactionExistance(toWallet, value, comment) {
 
     // Convert transaction value from nano
     let txValue = fromNano(tx.in_msg.value);
-    // Get transaction comment 
-    let txComment = tx.in_msg.message
+    // Get transaction comment
+    let txComment = tx.in_msg.message;
     if (txComment === comment && txValue === value.toString()) {
       return true;
     }

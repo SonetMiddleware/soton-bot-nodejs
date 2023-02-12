@@ -7,7 +7,7 @@ const SUCCESS_CODE = 0;
 export async function httpRequest(req) {
   const response = {};
   const { url, params, type } = req;
-
+  console.log("params: ", url, params);
   try {
     let res;
     if (type && type === "POST") {
@@ -25,7 +25,7 @@ export async function httpRequest(req) {
     }
     return res.data;
   } catch (e) {
-    console.error(e);
+    console.error(JSON.stringify(e));
     response.error = e.message || e;
   }
   return response;
@@ -40,13 +40,50 @@ export const bind1WithWeb3Proof = async (params) => {
 
 export const createProposal = async (params) => {
   const url = `${API_HOST}/proposal/create`;
-  const res = await httpRequest({ url, params, type: "POST" });
+  const {
+    creator,
+    snapshotBlock,
+    daoId,
+    title,
+    description,
+    startTime,
+    endTime,
+    ballotThreshold,
+    items,
+    voterType,
+    sig,
+    chain_name,
+  } = params;
+  const data = {
+    creator,
+    snapshot_block: snapshotBlock,
+    collection_id: daoId,
+    title,
+    description,
+    start_time: startTime,
+    end_time: endTime,
+    ballot_threshold: ballotThreshold,
+    items,
+    voter_type: voterType,
+    sig,
+    chain_name,
+  };
+  const res = await httpRequest({ url, params: data, type: "POST" });
   console.debug("[core-dao] createProposal: ", res);
   return res;
 };
 export const vote = async (params) => {
   const url = `${API_HOST}/proposal/vote`;
-  const res = await httpRequest({ url, params, type: "POST" });
+  const { voter, collectionId, proposalId, item, sig, chain_name } = params;
+  const data = {
+    voter,
+    collection_id: collectionId,
+    proposal_id: proposalId,
+    item,
+    sig,
+    chain_name,
+  };
+  const res = await httpRequest({ url, params: data, type: "POST" });
   console.debug("[core-dao] vote: ", res);
   if (res.error || res.code !== SUCCESS_CODE) {
     return false;
