@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "app": "nodemon src/app.js",
-    "lint": "prettier -w ."
+    "lint": "prettier -w .",
+    "start": "pm2 start src/app.js --name soton-backend",
+    "stop": "pm2 stop soton-backend"
   },
   "repository": {
     "type": "git",
