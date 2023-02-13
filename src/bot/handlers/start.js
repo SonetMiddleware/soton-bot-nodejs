@@ -1,7 +1,6 @@
 import { InlineKeyboard } from "grammy";
 import axios from "axios";
 export default async function handleStart(ctx) {
-  console.log("res: ", ctx.chat);
   const menu = new InlineKeyboard()
     .text("Buy dumplings🥟 xxxxx", "buy")
     .row()

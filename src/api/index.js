@@ -1,8 +1,10 @@
 //create proposal, vote api; v
 import axios from "axios";
 export const API_HOST = "https://apiv2-test.platwin.io/api/v1";
+export const API_HOST_V3 = "https://apiv2-test.platwin.io/api/v3";
 
-const SUCCESS_CODE = 0;
+export const SUCCESS_CODE = 0;
+export const CHAIN_NAME = "TONtest";
 
 export async function httpRequest(req) {
   const response = {};
@@ -30,6 +32,7 @@ export async function httpRequest(req) {
   }
   return response;
 }
+
 export const bind1WithWeb3Proof = async (params) => {
   const url = `${API_HOST}/bind-addr`;
   const res = await httpRequest({ url, params, type: "POST" });
@@ -90,4 +93,31 @@ export const vote = async (params) => {
   } else {
     return true;
   }
+};
+
+export const createDao = async (params) => {
+  const url = `${API_HOST}/dao/tg/create`;
+  const data = {
+    chain_name: CHAIN_NAME,
+    contract: params.contract,
+    collection_name: params.chat_name,
+    collection_id: params.chat_id,
+    collection_image: "",
+    dao_name: params.chat_name,
+    start_date: Date.now(),
+    total_member: 3,
+    facebook: "",
+    twitter: "",
+  };
+  const res = await httpRequest({ url, params: data, type: "POST" });
+  console.debug("[core-dao] vote: ", res);
+  if (res.error || res.code !== SUCCESS_CODE) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+export const getProposalsV3 = async () => {
+  const url = `${API_HOST_V3}/proposal`;
 };

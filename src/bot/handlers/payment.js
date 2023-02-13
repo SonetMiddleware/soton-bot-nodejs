@@ -7,7 +7,7 @@ import {
 
 export async function startPaymentProcess(conversation, ctx) {
   // Remove the loading clock
-  await ctx.answerCallbackQuery();
+  // await ctx.answerCallbackQuery();
 
   await ctx.replyWithPhoto(
     "https://telegra.ph/file/bad2fd69547432e16356f.jpg",
@@ -21,8 +21,7 @@ export async function startPaymentProcess(conversation, ctx) {
   const count = await conversation.form.number();
 
   // Get the total cost: multiply the number of portions by the price of the 1 portion
-  // const amount = count * 3;
-  const amount = 0;
+  const amount = count * 3;
   // Generate random comment
   const comment = Math.random().toString(36).substring(2, 8) + "dumplings";
   // Save data to the session
@@ -53,9 +52,7 @@ export async function startPaymentProcess(conversation, ctx) {
   await ctx.reply(
     `
 Fine, all you have to do is transfer ${amount} TON to the wallet <code>${process.env.OWNER_WALLET}</code> with the comment <code>${comment}</code>.
-
 <i>WARNING: I am currently working on ${process.env.NETWORK}</i>
-
 P.S. You can conveniently make a transfer by clicking on the appropriate button below and confirm the transaction in the offer`,
     { reply_markup: menu, parse_mode: "HTML" }
   );
