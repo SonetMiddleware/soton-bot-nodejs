@@ -24,6 +24,53 @@ const delay = async (time) => {
   });
 };
 
+const chain_name = "TONtest";
+const msgHandler = async (msg, ctx) => {
+  try {
+    console.log(msg);
+    const msgData = JSON.parse(msg.data);
+    const { type, data } = msgData;
+    if (type && type === "bind_addr") {
+      await ctx.reply("Binding address...");
+      const author = await ctx.getAuthor();
+      const { user } = author;
+      const { address } = data;
+      const res = await bind1WithWeb3Proof({
+        addr: address,
+        tid: user.username,
+        sig: "",
+        platform: "Telegram",
+        chain_name,
+      });
+      console.log(res);
+      if (res) {
+        return ctx.reply("Bind success");
+      } else {
+        return ctx.reply("Bind failed.");
+      }
+    } else if (type === "create_proposal") {
+      await ctx.reply("Creating proposal");
+      const res = await createProposal(data);
+      console.log(JSON.stringify(res));
+      if (res.code === 0) {
+        return ctx.reply("Create proposal successfully.");
+      } else {
+        return ctx.reply("Create proposal failed");
+      }
+    } else if (type === "vote") {
+      await ctx.reply("Submitting vote...");
+      const res = await vote(data);
+      if (res) {
+        return ctx.reply("Vote successfully.");
+      } else {
+        return ctx.reply("Vote failed");
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 async function runApp() {
   console.log("Starting app...");
 
@@ -52,13 +99,21 @@ async function runApp() {
   // bot.command("start", handleStart);
   bot.command("create", async (ctx) => {
     // return ctx.reply("Create Dao for your group. Enter nft contract:  ");
-    const menu = new InlineKeyboard().text("create dao", "createDao");
-    return ctx.reply("Create dao", { reply_markup: menu });
+    const menu = new InlineKeyboard().text("Click to start", "createDao");
+    return ctx.reply("Create dao for this group", { reply_markup: menu });
   });
   bot.command("start", async (ctx) => {
     console.log(ctx.chat);
     const author = await ctx.getAuthor();
     console.log("1 author: ", author);
+    if (ctx.chat.type === "private") {
+      return ctx.reply(
+        "open webapp",
+        Markup.keyboard([
+          Markup.button.webApp("Soton", "https://twa.soton.sonet.one/"),
+        ])
+      );
+    }
     const daoId = ctx.chat.id;
     return ctx.reply(
       "open webapp",
@@ -84,14 +139,12 @@ async function runApp() {
   });
 
   bot.on("message", async (ctx) => {
-    // console.log(ctx.message.web_app_data);
+    console.log(ctx.message.web_app_data);
     const author = await ctx.getAuthor();
     console.log("2 author: ", author);
-
     // console.log("2 chat: ", ctx.chat);
-
     if (ctx.message.web_app_data) {
-      // return await msgHandler(ctx.message.web_app_data, ctx);
+      return await msgHandler(ctx.message.web_app_data, ctx);
       // await ctx.reply(ctx.message.web_app_data.data);
       // await delay(3);
       // return ctx.reply("Vote successfully");
@@ -114,9 +167,11 @@ async function runApp() {
   // bot.start();
   bot.start();
   console.info(`Bot @${bot.botInfo.username} is up and running`);
-  bot.catch = (e) => {
+
+  bot.catch((e) => {
     console.log("catch: ", e);
-  };
+    bot.start();
+  });
 }
 
 void runApp();
