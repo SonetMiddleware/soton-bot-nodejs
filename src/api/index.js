@@ -1,7 +1,9 @@
 //create proposal, vote api; v
+import dotenv from "dotenv";
 import axios from "axios";
 export const API_HOST = "https://apiv2-test.platwin.io/api/v1";
 export const API_HOST_V3 = "https://apiv2-test.platwin.io/api/v3";
+dotenv.config();
 
 export const SUCCESS_CODE = 0;
 export const CHAIN_NAME = "TONtest";
@@ -32,6 +34,42 @@ export async function httpRequest(req) {
   }
   return response;
 }
+
+const botToken = process.env.BOT_TOKEN;
+export const getBotFile = async (file_id) => {
+  const url = `https://api.telegram.org/bot${botToken}/getFile?file_id=${file_id}`;
+  const res = await httpRequest({ url });
+  if (res && res.result) {
+    const { file_path } = res.result;
+    const url2 = `https://api.telegram.org/file/bot${botToken}/${file_path}`;
+    return url2;
+  }
+};
+
+export const getBindResult = async (params) => {
+  const url = `${API_HOST}/bind-attr`;
+  if (!params.addr) {
+    return [];
+  }
+  try {
+    const res = await httpRequest({ url, params });
+    // console.debug("[core-account] getBindResult: ", params, res);
+    if (res.error) return [];
+    return res.data;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
+export const getDaoWithGroupId = async (id) => {
+  const url = `${API_HOST}/collection/${id}`;
+  const params = {};
+  const res = await httpRequest({ url, params, type: "GET" });
+  console.debug("getDaoWithGroupId: ", id, res);
+  if (res.error) return false;
+  return res;
+};
 
 export const bind1WithWeb3Proof = async (params) => {
   const url = `${API_HOST}/bind-addr`;
@@ -102,7 +140,7 @@ export const createDao = async (params) => {
     contract: params.contract,
     collection_name: params.chat_name,
     collection_id: params.chat_id,
-    collection_image: "",
+    collection_image: params.logo,
     dao_name: params.chat_name,
     start_date: Date.now(),
     total_member: 3,

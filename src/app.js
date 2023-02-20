@@ -37,7 +37,7 @@ const msgHandler = async (msg, ctx) => {
       const { address } = data;
       const res = await bind1WithWeb3Proof({
         addr: address,
-        tid: user.username,
+        tid: user.id,
         sig: "",
         platform: "Telegram",
         chain_name,
@@ -100,7 +100,7 @@ async function runApp() {
   bot.command("create", async (ctx) => {
     // return ctx.reply("Create Dao for your group. Enter nft contract:  ");
     const menu = new InlineKeyboard().text("Click to start", "createDao");
-    return ctx.reply("Create dao for this group", { reply_markup: menu });
+    return ctx.reply("Create dao for your group", { reply_markup: menu });
   });
   bot.command("start", async (ctx) => {
     console.log(ctx.chat);
