@@ -4,11 +4,12 @@ import {
   getDaoWithGroupId,
   getBindResult,
   getBotFile,
+  getGroupMemberNumber,
 } from "./api/index.js";
 
 export async function createDaoConversation(conversation, ctx) {
   await ctx.answerCallbackQuery();
-
+  await ctx.reply("waiting...");
   const chat = await ctx.getChat();
   console.log("1 chat: ", chat);
 
@@ -29,6 +30,11 @@ export async function createDaoConversation(conversation, ctx) {
   if (binds && binds.length === 0) {
     return ctx.reply("Please bind your address with Soton first.");
   }
+  const tgBind = binds.find((item) => item.platform === "Telegram");
+  const creator = tgBind.addr;
+  if (!creator) {
+    return ctx.reply("No binding address.");
+  }
   await ctx.reply("Please enter the NFT contract address: ");
   const address = await conversation.wait();
   const res = address.message?.text;
@@ -38,11 +44,14 @@ export async function createDaoConversation(conversation, ctx) {
   if (!isAdmin) {
     return ctx.reply("Only group admin can create DAO.");
   }
+  const memberNum = await getGroupMemberNumber(ctx.chat.id);
   const params = {
     contract: res,
     chat_name: ctx.chat.title,
     chat_id: ctx.chat.id,
     logo,
+    creator,
+    member: memberNum,
   };
   const resp = await createDao(params);
   if (resp) {

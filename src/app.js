@@ -9,7 +9,12 @@ import {
 } from "./bot/handlers/payment.js";
 import { createDaoConversation } from "./createDao.js";
 import handleStart from "./bot/handlers/start.js";
-import { bind1WithWeb3Proof, createProposal, vote } from "./api/index.js";
+import {
+  bind1WithWeb3Proof,
+  createProposal,
+  vote,
+  unbind,
+} from "./api/index.js";
 import server from "./express.js";
 const port = 3000;
 server.listen(port, () => {
@@ -47,6 +52,24 @@ const msgHandler = async (msg, ctx) => {
         return ctx.reply("Bind success");
       } else {
         return ctx.reply("Bind failed.");
+      }
+    } else if (type && type === "unbind_addr") {
+      await ctx.reply("Unbinding address...");
+      const author = await ctx.getAuthor();
+      const { user } = author;
+      const { address } = data;
+      const res = await unbind({
+        addr: address,
+        tid: user.id,
+        sig: "",
+        platform: "Telegram",
+        chain_name,
+      });
+      console.log(res);
+      if (res) {
+        return ctx.reply("Unbind success");
+      } else {
+        return ctx.reply("Unbind failed.");
       }
     } else if (type === "create_proposal") {
       await ctx.reply("Creating proposal");

@@ -46,14 +46,17 @@ export const getBotFile = async (file_id) => {
   }
 };
 
+export const getGroupMemberNumber = async (chatId) => {
+  const url = `https://api.telegram.org/bot${botToken}/getChatMembersCount?chat_id=${chatId}`;
+  const res = await httpRequest({ url });
+  return res.result;
+};
+
 export const getBindResult = async (params) => {
   const url = `${API_HOST}/bind-attr`;
-  if (!params.addr) {
-    return [];
-  }
   try {
     const res = await httpRequest({ url, params });
-    // console.debug("[core-account] getBindResult: ", params, res);
+    console.debug("[core-account] getBindResult: ", params, res);
     if (res.error) return [];
     return res.data;
   } catch (e) {
@@ -75,6 +78,14 @@ export const bind1WithWeb3Proof = async (params) => {
   const url = `${API_HOST}/bind-addr`;
   const res = await httpRequest({ url, params, type: "POST" });
   console.debug("[core-account] bind1WithWeb3Proof: ", params, res);
+  if (res.error) return false;
+  return true;
+};
+
+export const unbind = async (params) => {
+  const url = `${API_HOST}/unbind-addr`;
+  const res = await httpRequest({ url, params, type: "POST" });
+  console.debug("[core-account] unbindAddr: ", params, res);
   if (res.error) return false;
   return true;
 };
@@ -142,8 +153,9 @@ export const createDao = async (params) => {
     collection_id: params.chat_id,
     collection_image: params.logo,
     dao_name: params.chat_name,
+    creator: params.creator,
     start_date: Date.now(),
-    total_member: 3,
+    total_member: params.member,
     facebook: "",
     twitter: "",
   };
