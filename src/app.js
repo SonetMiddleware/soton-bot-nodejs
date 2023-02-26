@@ -16,11 +16,13 @@ import {
   unbind,
 } from "./api/index.js";
 import server from "./express.js";
-const port = 3000;
+dotenv.config();
+const port = process.env.PORT || 3000;
+const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one/";
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-dotenv.config();
+
 const delay = async (time) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -132,9 +134,7 @@ async function runApp() {
     if (ctx.chat.type === "private") {
       return ctx.reply(
         "open webapp",
-        Markup.keyboard([
-          Markup.button.webApp("Soton", "https://twa.soton.sonet.one/"),
-        ])
+        Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
       );
     }
     const daoId = ctx.chat.id;
@@ -150,10 +150,7 @@ async function runApp() {
           "View proposals",
           `https://twa.soton.sonet.one/web/proposals?dao=${daoId}`
         ),
-        Markup.button.url(
-          "Vote with soton bot",
-          "https://t.me/my_ton_twa_0101_bot"
-        ),
+        Markup.button.url("Vote with soton bot", "https://t.me/SotonTestBot"),
       ])
       // Markup.keyboard([
       //   Markup.button.webApp("Soton", "https://twa.soton.sonet.one/"),

@@ -7,7 +7,7 @@ const chain_name = "TONtest";
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-const port = 3000;
+
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
