@@ -1,10 +1,9 @@
 //create proposal, vote api; v
-import dotenv from "dotenv";
+import loadEnv from "../utils/loadEnv";
+loadEnv();
 import axios from "axios";
-export const API_HOST = "https://apiv2-test.platwin.io/api/v1";
-export const API_HOST_V3 = "https://apiv2-test.platwin.io/api/v3";
-dotenv.config();
-
+export const API_HOST = process.env.API_HOST // "https://apiv2-test.platwin.io/api/v1";
+export const API_HOST_V3 = process.env.API_HOST_V3 // "https://apiv2-test.platwin.io/api/v3";
 export const SUCCESS_CODE = 0;
 export const CHAIN_NAME = "TONtest";
 
