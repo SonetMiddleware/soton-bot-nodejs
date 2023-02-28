@@ -5,10 +5,13 @@
   "main": "src/app.js",
   "type": "module",
   "scripts": {
-    "app": "nodemon src/app.js",
+    "app:test": "cross-env NODE_ENV=test nodemon src/app.js",
+    "app:prod": "cross-env NODE_ENV=prod nodemon src/app.js",
     "lint": "prettier -w .",
-    "start": "pm2 start src/app.js --name soton-backend",
-    "stop": "pm2 stop soton-backend"
+    "start:test": "cross-env NODE_ENV=test pm2 start src/app.js --name soton-backend-test",
+    "start:prod": "cross-env NODE_ENV=prod pm2 start src/app.js --name soton-backend-prod",
+    "stop:test": "pm2 stop soton-backend-test",
+    "stop:prod": "pm2 stop soton-backend-prod"
   },
   "repository": {
     "type": "git",
@@ -31,6 +34,7 @@
   "devDependencies": {
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "express": "^4.18.2",
     "nodemon": "^2.0.20",
     "prettier": "2.7.1"

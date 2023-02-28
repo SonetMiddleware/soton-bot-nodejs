@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import loadEnv from "./utils/loadEnv.js";
 import { Bot, session, InlineKeyboard } from "grammy";
 import { conversations, createConversation } from "@grammyjs/conversations";
 // const { Telegraf, Markup } = require("telegraf");
@@ -16,9 +16,12 @@ import {
   unbind,
 } from "./api/index.js";
 import server from "./express.js";
-dotenv.config();
+loadEnv();
+
 const port = process.env.PORT || 3000;
-const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one/";
+const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one";
+const TonBot = process.env.TON_BOT;
+
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
@@ -122,52 +125,62 @@ async function runApp() {
   });
   // Register all handelrs
   // bot.command("start", handleStart);
-  bot.command("create", async (ctx) => {
+  bot.command("create_dao", async (ctx) => {
+    //TODO 判断必须是在group里。
+    if (ctx.chat.type === "private") {
+      return ctx.reply("Please create DAO in your group chat.");
+    }
     // return ctx.reply("Create Dao for your group. Enter nft contract:  ");
     const menu = new InlineKeyboard().text("Click to start", "createDao");
     return ctx.reply("Create dao for your group", { reply_markup: menu });
   });
   bot.command("start", async (ctx) => {
-    console.log(ctx.chat);
-    const author = await ctx.getAuthor();
-    console.log("1 author: ", author);
+    console.log(ctx.update.message);
+    console.log("start: ");
+    const text = ctx.update.message.text;
+    if (/^\/start ([\w-]+)$/.test(text)) {
+      console.log("open dao: ", text.substring(7)); //TODO: open dao detail. soton app needs upgrade for auth.
+    }
+    // const author = await ctx.getAuthor();
+    // console.log("1 author: ", author);
     if (ctx.chat.type === "private") {
       return ctx.reply(
-        "open webapp",
+        "Start Soton webapp",
         Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
       );
     }
     const daoId = ctx.chat.id;
+    const adminRights =
+      "change_info+post_messages+edit_messages+delete_messages+restrict_members+invite_users+pin_messages+promote_members+manage_video_cha+anonymous+manage_chat";
+
     return ctx.reply(
       "open webapp",
-      // Markup.inlineKeyboard([
-      //   Markup.button.webApp("Login", "https://192.168.31.7:8001/"),
-      //   Markup.button.url("❤️", "http://telegraf.js.org"),
-      //   Markup.button.callback("Delete", "delete"),
-      // ])
       Markup.inlineKeyboard([
         Markup.button.url(
           "View proposals",
-          `https://twa.soton.sonet.one/web/proposals?dao=${daoId}`
+          `${TonWebApp}/web/proposals?dao=${daoId}`
         ),
-        Markup.button.url("Vote with soton bot", "https://t.me/SotonTestBot"),
+        Markup.button.url(
+          "Add bot to group",
+          `https://telegram.me/${TonBot}?startgroup=true`
+        ),
+        // Markup.button.url(
+        //   "Add bot to channel",
+        //   `https://t.me/SotonTestBot?startchannel&admin=${adminRights}` //not working. Depends on client
+        // ),
+        Markup.button.url(
+          "Vote with soton bot",
+          // "https://telegram.me/SotonTestBot?start=open"
+          `https://telegram.me/${TonBot}`
+        ),
       ])
-      // Markup.keyboard([
-      //   Markup.button.webApp("Soton", "https://twa.soton.sonet.one/"),
-      // ])
+    
     );
   });
 
   bot.on("message", async (ctx) => {
-    console.log(ctx.message.web_app_data);
-    const author = await ctx.getAuthor();
-    console.log("2 author: ", author);
-    // console.log("2 chat: ", ctx.chat);
     if (ctx.message.web_app_data) {
       return await msgHandler(ctx.message.web_app_data, ctx);
-      // await ctx.reply(ctx.message.web_app_data.data);
-      // await delay(3);
-      // return ctx.reply("Vote successfully");
     }
   });
 
