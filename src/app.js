@@ -34,7 +34,7 @@ const delay = async (time) => {
   });
 };
 
-const chain_name = "TONtest";
+const chain_name = process.env.CHAIN_NAME; // "TONtest";
 const msgHandler = async (msg, ctx) => {
   try {
     console.log(msg);

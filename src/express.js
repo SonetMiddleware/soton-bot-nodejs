@@ -3,11 +3,10 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { bind1WithWeb3Proof, createProposal, vote } from "./api/index.js";
-const chain_name = "TONtest";
+const chain_name = process.env.CHAIN_NAME; // "TONtest";
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
