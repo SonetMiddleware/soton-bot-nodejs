@@ -7,15 +7,21 @@ import {
   startPaymentProcess,
   checkTransaction,
 } from "./bot/handlers/payment.js";
-import { createDaoConversation } from "./createDao.js";
+import { createDaoConversation, createDaoHandler } from "./createDao.js";
 import handleStart from "./bot/handlers/start.js";
 import {
   bind1WithWeb3Proof,
   createProposal,
   vote,
   unbind,
+  createDao,
+  getDaoWithGroupId,
+  getBindResult,
+  getBotFile,
+  getGroupMemberNumber,
 } from "./api/index.js";
 import server from "./express.js";
+
 loadEnv();
 
 const port = process.env.PORT || 3000;
@@ -25,14 +31,6 @@ const TonBot = process.env.TON_BOT;
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-
-const delay = async (time) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve();
-    }, time * 1000);
-  });
-};
 
 const chain_name = process.env.CHAIN_NAME; // "TONtest";
 const msgHandler = async (msg, ctx) => {
@@ -126,9 +124,39 @@ async function runApp() {
   // Register all handelrs
   // bot.command("start", handleStart);
   bot.command("create_dao", async (ctx) => {
-    //TODO 判断必须是在group里。
     if (ctx.chat.type === "private") {
-      return ctx.reply("Please create DAO in your group chat.");
+      const text = `
+      Sorry, command "/create_dao" is enabled in chat group/channel.\n
+Please add me to your chat groups, with group admin role,  and use "create_dao" command in the chat group, I can then create DAO for the group.
+      `;
+      return ctx.reply(text, {
+        reply_markup: Markup.inlineKeyboard([
+          Markup.button.url(
+            "Add to group",
+            `https://telegram.me/${TonBot}?startgroup=true`
+          ),
+        ]),
+        parse_mode: "HTML",
+      });
+    }
+
+    //群聊
+    const daoId = ctx.chat.id;
+    const daos = await getDaoWithGroupId(daoId);
+    if (daos && daos.data && daos.data.dao) {
+      const text = `Sorry, the DAO has been created. Please feel free to review and join us with command "/start".`;
+      return ctx.reply(text);
+    } else {
+      console.log(ctx.update.message);
+      console.log("start: ");
+      const text = ctx.update.message.text;
+      if (/^\/create_dao ([\w-]+)$/.test(text)) {
+        const contract = text.substring(12);
+        return createDaoHandler(ctx, contract);
+      } else {
+        const text = `Please add NFT collection address to the command, that I can create DAO upon the collection and the NFT hodlers will be DAO members, syntax /create_dao <collection_address>`;
+        return ctx.reply(text);
+      }
     }
     // return ctx.reply("Create Dao for your group. Enter nft contract:  ");
     const menu = new InlineKeyboard().text("Click to start", "createDao");
@@ -144,38 +172,57 @@ async function runApp() {
     // const author = await ctx.getAuthor();
     // console.log("1 author: ", author);
     if (ctx.chat.type === "private") {
+      const text = `
+      Thanks for using Soton Bot. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them. 
+      `;
+
+      ctx.reply(
+        text,
+        Markup.inlineKeyboard([
+          Markup.button.url(
+            "Add to group",
+            `https://telegram.me/${TonBot}?startgroup=true`
+          ),
+        ])
+      );
       return ctx.reply(
-        "Start Soton webapp",
+        "Open Soton webapp",
         Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
       );
     }
+    //群聊
     const daoId = ctx.chat.id;
-    const adminRights =
-      "change_info+post_messages+edit_messages+delete_messages+restrict_members+invite_users+pin_messages+promote_members+manage_video_cha+anonymous+manage_chat";
-
-    return ctx.reply(
-      "open webapp",
-      Markup.inlineKeyboard([
-        Markup.button.url(
-          "View proposals",
-          `${TonWebApp}/web/proposals?dao=${daoId}`
-        ),
-        Markup.button.url(
-          "Add bot to group",
-          `https://telegram.me/${TonBot}?startgroup=true`
-        ),
-        // Markup.button.url(
-        //   "Add bot to channel",
-        //   `https://t.me/SotonTestBot?startchannel&admin=${adminRights}` //not working. Depends on client
-        // ),
-        Markup.button.url(
-          "Vote with soton bot",
-          // "https://telegram.me/SotonTestBot?start=open"
-          `https://telegram.me/${TonBot}`
-        ),
-      ])
-    
-    );
+    const daos = await getDaoWithGroupId(daoId);
+    if (daos && daos.data && daos.data.dao) {
+      const text =
+        "Thanks for using Soton Bot.\n I'm enabling NFT DAO to this group. Please review the proposals for this group DAO, and feel free to join the DAO and provide your opinion.";
+      return ctx.reply(
+        text,
+        Markup.inlineKeyboard([
+          Markup.button.url(
+            "View proposals",
+            `${TonWebApp}/web/proposals?dao=${daoId}`
+          ),
+          // Markup.button.url(
+          //   "Add bot to group",
+          //   `https://telegram.me/${TonBot}?startgroup=true`
+          // ),
+          // Markup.button.url(
+          //   "Add bot to channel",
+          //   `https://t.me/SotonTestBot?startchannel&admin=${adminRights}` //not working. Depends on client
+          // ),
+          Markup.button.url(
+            "Vote with soton bot",
+            // "https://telegram.me/SotonTestBot?start=open"
+            `https://telegram.me/${TonBot}`
+          ),
+        ])
+      );
+    } else {
+      const text =
+        "Thanks for using Soton Bot. I'm going to add NFT DAO support to this group. Please create DAO for this group and NFT collection, with /create_dao command in chat.";
+      return ctx.reply(text);
+    }
   });
 
   bot.on("message", async (ctx) => {

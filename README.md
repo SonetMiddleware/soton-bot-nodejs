@@ -22,7 +22,7 @@ Article with a full explanation of the bot's work: https://tonspace.co/develop/d
 # set webhook
 
 ```
-https://api.telegram.org/bot<your_bot_token>/setWebhook?url=https://<your_site_name>.netlify.app/api/bot
+https://api.telegram.org/bot<your_bot_token>/setWebhook?url=https://<your_site_name>
 ```
 
 # License
