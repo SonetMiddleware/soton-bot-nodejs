@@ -68,7 +68,7 @@ export const getDaoWithGroupId = async (id) => {
   const url = `${API_HOST}/collection/${id}`;
   const params = {};
   const res = await httpRequest({ url, params, type: "GET" });
-  console.debug("getDaoWithGroupId: ", id, res);
+  // console.debug("getDaoWithGroupId: ", id, res);
   if (res.error) return false;
   return res;
 };
