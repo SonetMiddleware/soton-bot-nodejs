@@ -28,6 +28,14 @@ export async function createDaoConversation(conversation, ctx) {
   }
   const author = await ctx.getAuthor();
   console.log("1 author: ", author);
+  const admins = await ctx.getChatAdministrators();
+  const isAdmin = admins.find((item) => item.user.id === author.user.id);
+  if (!isAdmin) {
+    return ctx.reply(
+      "You've not been granted admin to this group, please ask group admin to create DAO for this group."
+    );
+  }
+
   const binds = await getBindResult({ tid: author.user.id });
   console.log("binds: ", binds);
   if (binds && binds.length === 0) {
@@ -42,13 +50,6 @@ export async function createDaoConversation(conversation, ctx) {
   const address = await conversation.wait();
   const res = address.message?.text;
 
-  const admins = await ctx.getChatAdministrators();
-  const isAdmin = admins.find((item) => item.user.id === author.user.id);
-  if (!isAdmin) {
-    return ctx.reply(
-      "You've not been granted admin to this group, please ask group admin to create DAO for this group."
-    );
-  }
   const memberNum = await getGroupMemberNumber(ctx.chat.id);
   const params = {
     contract: res,
@@ -76,22 +77,7 @@ export async function createDaoHandler(ctx, contract) {
     logo = path;
   }
   const author = await ctx.getAuthor();
-  console.log("1 author: ", author);
   const binds = await getBindResult({ tid: author.user.id });
-  console.log("binds: ", binds);
-  if (binds && binds.length === 0) {
-    const text = "Please bind your address with Soton first.";
-    return ctx.reply(
-      text,
-      Markup.inlineKeyboard([
-        Markup.button.url(
-          "Open Soton webapp",
-          // "https://telegram.me/SotonTestBot?start=open"
-          `https://telegram.me/${TonBot}`
-        ),
-      ])
-    );
-  }
   const tgBind = binds.find((item) => item.platform === "Telegram");
   const creator = tgBind.addr;
   if (!creator) {
@@ -120,6 +106,11 @@ export async function createDaoHandler(ctx, contract) {
       `The DAO has been created successfully, thanks for using Soton Bot. Please reply command "/start" to take a review.`
     );
   } else {
-    return ctx.reply("Create DAO failed.");
+    return ctx.reply(`
+    Create DAO failed. Please be sure that 
+1. the collection address is correct,
+2. you're admin of this group chat, 
+3. you've got the collection NFT(s) in your TON wallet.
+    `);
   }
 }

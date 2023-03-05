@@ -125,6 +125,10 @@ async function runApp() {
   });
   // Register all handelrs
   // bot.command("start", handleStart);
+
+  const CREATE_DAO_TEXT =
+    "To create a DAO based on a live NFT collection for this chat. Please reply the NFT collection address.";
+
   bot.command("create_dao", async (ctx) => {
     if (ctx.chat.type === "private") {
       const text = `
@@ -143,22 +147,67 @@ Please add me to your chat groups, with group admin role,  and use "create_dao" 
     }
 
     //群聊
+    // 判断admin
+    const author = await ctx.getAuthor();
+    console.log("1 author: ", author);
+    const admins = await ctx.getChatAdministrators();
+    const isAdmin = admins.find((item) => item.user.id === author.user.id);
+    if (!isAdmin) {
+      return ctx.reply(
+        "You've not been granted admin to this group, please ask group admin to create DAO for this group. " +
+          `@${author.user.username}`
+      );
+    }
+
+    const binds = await getBindResult({ tid: author.user.id });
+    console.log("binds: ", binds);
+    if (binds && binds.length === 0) {
+      const text = `Please bind your TON wallet with your Telegram account first, 
+via, Open Soton Bot > use "start" command > Click 'Soton' Button. 
+And try again after bound.
+  @${author.user.username}`;
+      return ctx.reply(
+        text,
+        Markup.inlineKeyboard([
+          Markup.button.url(
+            "Open Soton Bot",
+            // "https://telegram.me/SotonTestBot?start=open"
+            `https://telegram.me/${TonBot}`
+          ),
+        ])
+      );
+    }
+
     const daoId = ctx.chat.id;
     const daos = await getDaoWithGroupId(daoId);
     if (daos && daos.data && daos.data.dao) {
-      const text = `Sorry, the DAO has been created. Please feel free to review and join us with command "/start".`;
+      const text =
+        `Sorry, the DAO has been created. Please feel free to review and join us with command "/start". ` +
+        `@${author.user.username}`;
       return ctx.reply(text);
     } else {
-      console.log(ctx.update.message);
-      console.log("start: ");
-      const text = ctx.update.message.text;
-      if (/^\/create_dao ([\w-]+)$/.test(text)) {
-        const contract = text.substring(12);
-        return createDaoHandler(ctx, contract);
-      } else {
-        const text = `Please add NFT collection address to the command, that I can create DAO upon the collection and the NFT hodlers will be DAO members, syntax /create_dao <collection_address>`;
-        return ctx.reply(text);
-      }
+      return (
+        // .keyboard([["Option1", "Option2"]])
+
+        ctx.reply(CREATE_DAO_TEXT + `@${author.user.username}`, {
+          // Make Telegram clients automatically show a reply interface to the user.
+          reply_markup: {
+            force_reply: true,
+            selective: true,
+          },
+        })
+      );
+
+      // console.log(ctx.update.message);
+      // console.log("start: ");
+      // const text = ctx.update.message.text;
+      // if (/^\/create_dao ([\w-]+)$/.test(text)) {
+      //   const contract = text.substring(12);
+      //   return createDaoHandler(ctx, contract);
+      // } else {
+      //   const text = `Please add NFT collection address to the command, that I can create DAO upon the collection and the NFT hodlers will be DAO members, syntax /create_dao <collection_address>`;
+      //   return ctx.reply(text);
+      // }
     }
     // return ctx.reply("Create Dao for your group. Enter nft contract:  ");
     const menu = new InlineKeyboard().text("Click to start", "createDao");
@@ -175,7 +224,7 @@ Please add me to your chat groups, with group admin role,  and use "create_dao" 
     // console.log("1 author: ", author);
     if (ctx.chat.type === "private") {
       const text = `
-      Thanks for using Soton Bot. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them. 
+      Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them. 
       `;
 
       ctx.reply(
@@ -229,12 +278,27 @@ Please add me to your chat groups, with group admin role,  and use "create_dao" 
         ])
       );
     } else {
-      const text = `Thanks for using Soton Bot. I'm going to add NFT DAO support to this group. Please create DAO for this group and NFT collection, with /create_dao command in chat.`;
+      const text = `Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. I'm going to add NFT DAO support to this group. Please create DAO for this group and NFT collection, with /create_dao command in chat.`;
       return ctx.reply(text);
     }
   });
 
   bot.on("message", async (ctx) => {
+    // console.log("msg: ", ctx.message);
+    if (ctx.message.reply_to_message) {
+      const msg = ctx.message.reply_to_message.text;
+      const text = ctx.message.text;
+      if (msg.includes(CREATE_DAO_TEXT) && text) {
+        // 判断from 是admin
+        const admin = msg.substring(msg.indexOf("@") + 1);
+        console.log("admin@: ", admin);
+        const from = ctx.message.from.username;
+        if (from !== admin) {
+          return;
+        }
+        return createDaoHandler(ctx, text);
+      }
+    }
     if (ctx.message.web_app_data) {
       return await msgHandler(ctx.message.web_app_data, ctx);
     }
