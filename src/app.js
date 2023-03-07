@@ -45,7 +45,7 @@ const msgHandler = async (msg, ctx) => {
       const { address } = data;
       const res = await bind1WithWeb3Proof({
         addr: address,
-        tid: user.id,
+        tid: user.id + "",
         sig: "",
         platform: "Telegram",
         chain_name,
@@ -65,7 +65,7 @@ const msgHandler = async (msg, ctx) => {
       const { address } = data;
       const res = await unbind({
         addr: address,
-        tid: user.id,
+        tid: user.id + "",
         sig: "",
         platform: "Telegram",
         chain_name,
