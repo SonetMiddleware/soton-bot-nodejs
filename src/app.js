@@ -21,6 +21,7 @@ import {
   getGroupMemberNumber,
 } from "./api/index.js";
 import server from "./express.js";
+import { isBound, getBounds } from "./utils/index.js";
 
 loadEnv();
 
@@ -159,9 +160,8 @@ Please add me to your chat groups, with group admin role,  and use "create_dao" 
       );
     }
 
-    const binds = await getBindResult({ tid: author.user.id });
-    console.log("binds: ", binds);
-    if (binds && binds.length === 0) {
+    const hasBound = await isBound(author.user.id);
+    if (hasBound) {
       const text = `Please bind your TON wallet with your Telegram account first, 
 via, Open Soton Bot > use "start" command > Click 'Soton' Button. 
 And try again after bound.
@@ -210,32 +210,36 @@ And try again after bound.
       // }
     }
     // return ctx.reply("Create Dao for your group. Enter nft contract:  ");
-    const menu = new InlineKeyboard().text("Click to start", "createDao");
-    return ctx.reply("Create dao for your group", { reply_markup: menu });
+    // const menu = new InlineKeyboard().text("Click to start", "createDao");
+    // return ctx.reply("Create dao for your group", { reply_markup: menu });
   });
   bot.command("start", async (ctx) => {
-    console.log(ctx.update.message);
+    // console.log(ctx.update.message);
     console.log("start: ");
-    const text = ctx.update.message.text;
-    if (/^\/start ([\w-]+)$/.test(text)) {
-      console.log("open dao: ", text.substring(7)); //TODO: open dao detail. soton app needs upgrade for auth.
-    }
-    // const author = await ctx.getAuthor();
+    const author = await ctx.getAuthor();
     // console.log("1 author: ", author);
     if (ctx.chat.type === "private") {
+      // 判断用户是否绑定
+      const binds = await getBounds(author.user.id);
+
       const text = `
       Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them. 
       `;
-
-      ctx.reply(
-        text,
-        Markup.inlineKeyboard([
+      const buttons = [
+        Markup.button.url(
+          "Add to group",
+          `https://telegram.me/${TonBot}?startgroup=true`
+        ),
+      ];
+      if (binds[0]) {
+        buttons.push(
           Markup.button.url(
-            "Add to group",
-            `https://telegram.me/${TonBot}?startgroup=true`
-          ),
-        ])
-      );
+            "Go to market",
+            `${process.env.MARKET_USER}/${binds[0].addr}`
+          )
+        );
+      }
+      ctx.reply(text, Markup.inlineKeyboard(buttons));
       return ctx.reply(
         "Open Soton webapp",
         Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
@@ -253,6 +257,7 @@ And try again after bound.
     //群聊
     const daoId = ctx.chat.id;
     const daos = await getDaoWithGroupId(daoId);
+    console.log("daos: ", daos);
     if (daos && daos.data && daos.data.dao) {
       const text = `Thanks for using Soton Bot. I'm enabling NFT DAO to this group. Please review the proposals for this group DAO, and feel free to join the DAO and provide your opinion.`;
       return ctx.reply(
@@ -262,18 +267,14 @@ And try again after bound.
             "View proposals",
             `${TonWebApp}/web/proposals?dao=${daoId}`
           ),
-          // Markup.button.url(
-          //   "Add bot to group",
-          //   `https://telegram.me/${TonBot}?startgroup=true`
-          // ),
-          // Markup.button.url(
-          //   "Add bot to channel",
-          //   `https://t.me/SotonTestBot?startchannel&admin=${adminRights}` //not working. Depends on client
-          // ),
           Markup.button.url(
             "Vote with soton bot",
             // "https://telegram.me/SotonTestBot?start=open"
             `https://telegram.me/${TonBot}`
+          ),
+          Markup.button.url(
+            "Go to market",
+            `${process.env.MARKET_COLLECTION}/${daos.data.contract}`
           ),
         ])
       );
@@ -284,6 +285,7 @@ And try again after bound.
   });
 
   bot.on("message", async (ctx) => {
+    // console.log("updated message: ", ctx.update.message);
     // console.log("msg: ", ctx.message);
     if (ctx.message.reply_to_message) {
       const msg = ctx.message.reply_to_message.text;

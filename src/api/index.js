@@ -55,7 +55,7 @@ export const getBindResult = async (params) => {
   const url = `${API_HOST}/bind-attr`;
   try {
     const res = await httpRequest({ url, params });
-    console.debug("[core-account] getBindResult: ", params, res);
+    // console.debug("[core-account] getBindResult: ", params, res);
     if (res.error) return [];
     return res.data;
   } catch (e) {

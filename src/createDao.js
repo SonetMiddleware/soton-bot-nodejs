@@ -7,14 +7,14 @@ import {
   getGroupMemberNumber,
 } from "./api/index.js";
 import { Markup } from "telegraf";
-import { TonBot } from "./utils/constant.js";
+import { TonBot, DEFAULT_DAO_LOGO } from "./utils/constant.js";
 export async function createDaoConversation(conversation, ctx) {
   await ctx.answerCallbackQuery();
   await ctx.reply("waiting...");
   const chat = await ctx.getChat();
   console.log("1 chat: ", chat);
 
-  let logo;
+  let logo = DEFAULT_DAO_LOGO; // default logo;
   if (chat.photo) {
     const path = await getBotFile(chat.photo.small_file_id);
     console.log("path: ", path);
@@ -70,7 +70,7 @@ export async function createDaoConversation(conversation, ctx) {
 export async function createDaoHandler(ctx, contract) {
   const chat = await ctx.getChat();
   console.log("1 chat: ", chat);
-  let logo;
+  let logo = DEFAULT_DAO_LOGO; // default logo;
   if (chat.photo) {
     const path = await getBotFile(chat.photo.small_file_id);
     console.log("path: ", path);
