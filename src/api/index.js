@@ -6,7 +6,7 @@ export const API_HOST = process.env.API_HOST; // "https://apiv2-test.platwin.io/
 export const API_HOST_V3 = process.env.API_HOST_V3; // "https://apiv2-test.platwin.io/api/v3";
 export const SUCCESS_CODE = 0;
 export const CHAIN_NAME = process.env.CHAIN_NAME;
-
+export const API_ORIGIN = process.env.API_ORIGIN;
 export async function httpRequest(req) {
   const response = {};
   const { url, params, type } = req;
@@ -169,4 +169,89 @@ export const createDao = async (params) => {
 
 export const getProposalsV3 = async () => {
   const url = `${API_HOST_V3}/proposal`;
+};
+
+// params: {
+//   owner: string;
+//   image: string;
+//   name: string;
+//   description: string
+// }
+export const genCollectionDeployTx = async (params) => {
+  const url = `${API_HOST}/nft/collection/gen`;
+  const data = {
+    chain_name: CHAIN_NAME,
+    owner: params.owner,
+    royalty: 0.1,
+    royalty_address: params.owner,
+    metadata: {
+      name: params.name,
+      image: params.image,
+      cover_image: params.image,
+      description: params.description,
+      social_links: [""],
+    },
+  };
+  const res = await httpRequest({ url, params: data, type: "POST" });
+  console.log("[gen-collection-tx]: ", res);
+  return res.data;
+};
+
+// params
+//   {
+//
+//     "owner": "ownerAddr",
+//     "collection": {
+//       "name": "collection name",
+//       "address": "collection address"
+//     },
+//
+//       "name": "name",
+//       "image": "image url",
+//       "description": "description",
+//       "attributes": [
+//         {
+//           "trait_type": "Material",
+//           "value": "Wool fabric"
+//         },
+//         {
+//           "trait_type": "Hat",
+//           "value": "Top hat"
+//         }
+//       ]
+//
+//   }
+
+export const genNFMintTx = async (params) => {
+  const url = `${API_HOST}/nft/item/gen`;
+  const data = {
+    chain_name: CHAIN_NAME,
+    owner: params.owner,
+    collection: {
+      name: params.collection.name,
+      addr: params.collection.address,
+    },
+    metadata: {
+      name: params.name,
+      image: params.image,
+      description: params.description,
+      attributes: params.attributes,
+    },
+  };
+  const res = await httpRequest({ url, params: data, type: "POST" });
+  console.log("[gen-collection-tx]: ", res);
+  return res.data;
+};
+
+export const getCollectionMetadata = async (collectionName) => {
+  const chain_name = CHAIN_NAME;
+  const url = `${API_ORIGIN}/assets/ton-collection/${chain_name}/${collectionName}`;
+  const res = await httpRequest({ url, params: null, type: "GET" });
+  return res;
+};
+export const getNFTMetadata = async (collectionName, tokenId) => {
+  const chain_name = CHAIN_NAME;
+  const url = `${API_ORIGIN}/assets/ton-collection/${chain_name}/${collectionName}/${tokenId}`;
+  const res = await httpRequest({ url, params: null, type: "GET" });
+  return res;
 };

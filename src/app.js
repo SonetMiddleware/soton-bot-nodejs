@@ -1,5 +1,6 @@
 import loadEnv from "./utils/loadEnv.js";
 import { Bot, session, InlineKeyboard } from "grammy";
+import { Menu } from "@grammyjs/menu";
 import { conversations, createConversation } from "@grammyjs/conversations";
 // const { Telegraf, Markup } = require("telegraf");
 import { Markup } from "telegraf";
@@ -9,6 +10,7 @@ import {
 } from "./bot/handlers/payment.js";
 import { createDaoConversation, createDaoHandler } from "./createDao.js";
 import handleStart from "./bot/handlers/start.js";
+import { collectionConversation } from "./collections.js";
 import {
   bind1WithWeb3Proof,
   createProposal,
@@ -22,7 +24,7 @@ import {
 } from "./api/index.js";
 import server from "./express.js";
 import { isBound, getBounds } from "./utils/index.js";
-
+import { msgHandler } from "./twaMsgHandler.js";
 loadEnv();
 
 const port = process.env.PORT || 3000;
@@ -32,73 +34,6 @@ const TonBot = process.env.TON_BOT;
 server.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
-
-const chain_name = process.env.CHAIN_NAME; // "TONtest";
-const msgHandler = async (msg, ctx) => {
-  try {
-    console.log(msg);
-    const msgData = JSON.parse(msg.data);
-    const { type, data } = msgData;
-    if (type && type === "bind_addr") {
-      await ctx.reply("Binding address...");
-      const author = await ctx.getAuthor();
-      const { user } = author;
-      const { address } = data;
-      const res = await bind1WithWeb3Proof({
-        addr: address,
-        tid: user.id + "",
-        sig: "",
-        platform: "Telegram",
-        chain_name,
-      });
-      console.log(res);
-      if (res) {
-        return ctx.reply(
-          `TON address "${address}" has been bound to your Telegram account.`
-        );
-      } else {
-        return ctx.reply("Bind failed.");
-      }
-    } else if (type && type === "unbind_addr") {
-      await ctx.reply("Unbinding address...");
-      const author = await ctx.getAuthor();
-      const { user } = author;
-      const { address } = data;
-      const res = await unbind({
-        addr: address,
-        tid: user.id + "",
-        sig: "",
-        platform: "Telegram",
-        chain_name,
-      });
-      console.log(res);
-      if (res) {
-        return ctx.reply("Your TON address is unbound.");
-      } else {
-        return ctx.reply("Unbind failed.");
-      }
-    } else if (type === "create_proposal") {
-      await ctx.reply("Creating proposal");
-      const res = await createProposal(data);
-      console.log(JSON.stringify(res));
-      if (res.code === 0) {
-        return ctx.reply("Create proposal successfully.");
-      } else {
-        return ctx.reply("Create proposal failed");
-      }
-    } else if (type === "vote") {
-      await ctx.reply("Submitting vote...");
-      const res = await vote(data);
-      if (res) {
-        return ctx.reply("Vote successfully.");
-      } else {
-        return ctx.reply("Vote failed");
-      }
-    }
-  } catch (e) {
-    console.log(e);
-  }
-};
 
 async function runApp() {
   console.log("Starting app...");
@@ -120,15 +55,103 @@ async function runApp() {
 
   bot.use(createConversation(startPaymentProcess));
   bot.use(createConversation(createDaoConversation));
+  bot.use(createConversation(collectionConversation));
   bot.command("cancel", async (ctx) => {
     await ctx.conversation.exit();
     await ctx.reply("Leaving.");
   });
+
+  const main = new Menu("root-menu")
+    .text("Collections", async (ctx) => {
+      await ctx.conversation.enter("collectionConversation");
+    })
+    .row()
+    .submenu("Credits", "credits-menu");
+
+  const settings = new Menu("credits-menu")
+    .text("Show Credits", (ctx) => ctx.reply("Powered by grammY"))
+    .back("Go Back");
+  main.register(settings);
+  bot.use(main);
   // Register all handelrs
   // bot.command("start", handleStart);
 
   const CREATE_DAO_TEXT =
     "To create a DAO based on a live NFT collection for this chat. Please reply the NFT collection address.";
+
+  bot.command("start", async (ctx) => {
+    // console.log(ctx.update.message);
+    console.log("start: ");
+    const author = await ctx.getAuthor();
+    // console.log("1 author: ", author);
+    if (ctx.chat.type === "private") {
+      // 判断用户是否绑定
+      const binds = await getBounds(author.user.id);
+
+      const text = `
+      Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them. 
+      `;
+      const buttons = [
+        Markup.button.url(
+          "Add to group",
+          `https://telegram.me/${TonBot}?startgroup=true`
+        ),
+      ];
+      if (binds[0]) {
+        buttons.push(
+          Markup.button.url(
+            "Go to market",
+            `${process.env.MARKET_USER}/${binds[0].addr}`
+          )
+        );
+        ctx.reply("Collections", { reply_markup: main });
+      }
+      // const menu = new InlineKeyboard().text("Collections", "collections");
+
+      ctx.reply(text, Markup.inlineKeyboard(buttons));
+      return ctx.reply(
+        "Open Soton webapp",
+        Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
+      );
+    }
+    const chat = await ctx.getChat();
+    console.log("1 chat: ", chat);
+    let logo;
+    if (chat.photo) {
+      const path = await getBotFile(chat.photo.small_file_id);
+      console.log("path: ", path);
+      logo = path;
+    }
+
+    //群聊
+    const daoId = ctx.chat.id;
+    const daos = await getDaoWithGroupId(daoId);
+    console.log("daos: ", daos);
+    if (daos && daos.data && daos.data.dao) {
+      const text = `Thanks for using Soton Bot. I'm enabling NFT DAO to this group. Please review the proposals for this group DAO, and feel free to join the DAO and provide your opinion.`;
+      return ctx.reply(
+        text,
+        Markup.inlineKeyboard([
+          Markup.button.url(
+            "View proposals",
+            `${TonWebApp}/web/proposals?dao=${daoId}`
+          ),
+          Markup.button.url(
+            "Vote with soton bot",
+            // "https://telegram.me/SotonTestBot?start=open"
+            `https://telegram.me/${TonBot}`
+          ),
+          Markup.button.url(
+            "Go to market",
+            `${process.env.MARKET_COLLECTION}/${daos.data.contract}`
+          ),
+        ])
+      );
+    } else {
+      const text = `Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. I'm going to add NFT DAO support to this group. Please create DAO for this group and NFT collection, with /create_dao command in chat.`;
+      return ctx.reply(text);
+    }
+  });
 
   bot.command("create_dao", async (ctx) => {
     if (ctx.chat.type === "private") {
@@ -213,76 +236,6 @@ And try again after bound.
     // const menu = new InlineKeyboard().text("Click to start", "createDao");
     // return ctx.reply("Create dao for your group", { reply_markup: menu });
   });
-  bot.command("start", async (ctx) => {
-    // console.log(ctx.update.message);
-    console.log("start: ");
-    const author = await ctx.getAuthor();
-    // console.log("1 author: ", author);
-    if (ctx.chat.type === "private") {
-      // 判断用户是否绑定
-      const binds = await getBounds(author.user.id);
-
-      const text = `
-      Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them. 
-      `;
-      const buttons = [
-        Markup.button.url(
-          "Add to group",
-          `https://telegram.me/${TonBot}?startgroup=true`
-        ),
-      ];
-      if (binds[0]) {
-        buttons.push(
-          Markup.button.url(
-            "Go to market",
-            `${process.env.MARKET_USER}/${binds[0].addr}`
-          )
-        );
-      }
-      ctx.reply(text, Markup.inlineKeyboard(buttons));
-      return ctx.reply(
-        "Open Soton webapp",
-        Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
-      );
-    }
-    const chat = await ctx.getChat();
-    console.log("1 chat: ", chat);
-    let logo;
-    if (chat.photo) {
-      const path = await getBotFile(chat.photo.small_file_id);
-      console.log("path: ", path);
-      logo = path;
-    }
-
-    //群聊
-    const daoId = ctx.chat.id;
-    const daos = await getDaoWithGroupId(daoId);
-    console.log("daos: ", daos);
-    if (daos && daos.data && daos.data.dao) {
-      const text = `Thanks for using Soton Bot. I'm enabling NFT DAO to this group. Please review the proposals for this group DAO, and feel free to join the DAO and provide your opinion.`;
-      return ctx.reply(
-        text,
-        Markup.inlineKeyboard([
-          Markup.button.url(
-            "View proposals",
-            `${TonWebApp}/web/proposals?dao=${daoId}`
-          ),
-          Markup.button.url(
-            "Vote with soton bot",
-            // "https://telegram.me/SotonTestBot?start=open"
-            `https://telegram.me/${TonBot}`
-          ),
-          Markup.button.url(
-            "Go to market",
-            `${process.env.MARKET_COLLECTION}/${daos.data.contract}`
-          ),
-        ])
-      );
-    } else {
-      const text = `Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. I'm going to add NFT DAO support to this group. Please create DAO for this group and NFT collection, with /create_dao command in chat.`;
-      return ctx.reply(text);
-    }
-  });
 
   bot.on("message", async (ctx) => {
     // console.log("updated message: ", ctx.update.message);
@@ -311,6 +264,9 @@ And try again after bound.
   });
   bot.callbackQuery("createDao", async (ctx) => {
     await ctx.conversation.enter("createDaoConversation");
+  });
+  bot.callbackQuery("collections", async (ctx) => {
+    await ctx.conversation.enter("collectionConversation");
   });
   bot.callbackQuery("check_transaction", checkTransaction);
 
