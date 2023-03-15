@@ -61,18 +61,18 @@ async function runApp() {
     await ctx.reply("Leaving.");
   });
 
-  const main = new Menu("root-menu")
-    .text("Collections", async (ctx) => {
-      await ctx.conversation.enter("collectionConversation");
-    })
-    .row()
-    .submenu("Credits", "credits-menu");
+  // const main = new Menu("root-menu")
+  //   .text("Collections", async (ctx) => {
+  //     await ctx.conversation.enter("collectionConversation");
+  //   })
+  //   .row()
+  //   .submenu("Credits", "credits-menu");
 
-  const settings = new Menu("credits-menu")
-    .text("Show Credits", (ctx) => ctx.reply("Powered by grammY"))
-    .back("Go Back");
-  main.register(settings);
-  bot.use(main);
+  // const settings = new Menu("credits-menu")
+  //   .text("Show Credits", (ctx) => ctx.reply("Powered by grammY"))
+  //   .back("Go Back");
+  // main.register(settings);
+  // bot.use(main);
   // Register all handelrs
   // bot.command("start", handleStart);
 
@@ -104,13 +104,11 @@ async function runApp() {
             `${process.env.MARKET_USER}/${binds[0].addr}`
           )
         );
-        ctx.reply("Collections", { reply_markup: main });
       }
-      // const menu = new InlineKeyboard().text("Collections", "collections");
 
       ctx.reply(text, Markup.inlineKeyboard(buttons));
       return ctx.reply(
-        "Open Soton webapp",
+        'Click "Soton" to Open Soton webapp',
         Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
       );
     }
