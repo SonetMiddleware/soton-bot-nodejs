@@ -1,4 +1,5 @@
 import loadEnv from "./utils/loadEnv.js";
+loadEnv();
 import { Bot, session, InlineKeyboard } from "grammy";
 import { Menu } from "@grammyjs/menu";
 import { conversations, createConversation } from "@grammyjs/conversations";
@@ -25,7 +26,6 @@ import {
 import server from "./express.js";
 import { isBound, getBounds } from "./utils/index.js";
 import { msgHandler } from "./twaMsgHandler.js";
-loadEnv();
 
 const port = process.env.PORT || 3000;
 const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one";
@@ -107,9 +107,10 @@ async function runApp() {
       }
 
       ctx.reply(text, Markup.inlineKeyboard(buttons));
+      const twaUrl = `${TonWebApp}?tid=${author.user.id}`;
       return ctx.reply(
         'Click "Soton" to Open Soton webapp',
-        Markup.keyboard([Markup.button.webApp("Soton", TonWebApp)])
+        Markup.keyboard([Markup.button.webApp("Soton", twaUrl)])
       );
     }
     const chat = await ctx.getChat();

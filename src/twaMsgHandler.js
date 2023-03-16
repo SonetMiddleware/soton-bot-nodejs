@@ -9,6 +9,7 @@ import {
   getBotFile,
   getGroupMemberNumber,
 } from "./api/index.js";
+const chain_name = process.env.CHAIN_NAME;
 export const msgHandler = async (msg, ctx) => {
   try {
     console.log(msg);

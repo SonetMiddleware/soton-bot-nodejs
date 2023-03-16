@@ -18,7 +18,7 @@ export async function httpRequest(req) {
         url,
         method: "POST",
         data: params,
-        headers: { authorization: "TG Robot" },
+        headers: { authorization: "TG Robot Platwin Soda" },
       });
     } else {
       res = await axios.request(url, {
