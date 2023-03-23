@@ -12,7 +12,9 @@
     "start:test": "cross-env NODE_ENV=test pm2 start src/app.js --name soton-backend-test",
     "start:prod": "cross-env NODE_ENV=prod pm2 start src/app.js --name soton-backend-prod",
     "stop:test": "pm2 stop soton-backend-test",
-    "stop:prod": "pm2 stop soton-backend-prod"
+    "stop:prod": "pm2 stop soton-backend-prod",
+    "restart:test": "npm run stop:test && npm run start:test",
+    "restart:prod": "npm run stop:prod && npm run start:prod"
   },
   "repository": {
     "type": "git",

@@ -104,16 +104,17 @@ export async function createDaoHandler(ctx, contract) {
     };
     const resp = await createDao(params);
     if (resp.error || resp.code !== SUCCESS_CODE) {
-      ctx.reply(`
-    Create DAO failed. Please be sure that 
+      let error = "";
+      if (resp.error && typeof resp.error === "string") {
+        error = resp.error;
+      }
+      return ctx.reply(`
+      ${error}.
+Create DAO failed. Please be sure that: 
 1. the collection address is correct,
 2. you're admin of this group chat, 
 3. you've got the collection NFT(s) in your TON wallet.
     `);
-      if (resp.error && typeof resp.error === "string") {
-        ctx.reply(resp.error);
-      }
-      return;
     } else {
       return ctx.reply(
         `The DAO has been created successfully, thanks for using Soton Bot. Please reply command "/start" to take a review.`
