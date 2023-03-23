@@ -5,6 +5,7 @@ import {
   getBindResult,
   getBotFile,
   getGroupMemberNumber,
+  SUCCESS_CODE
 } from "./api/index.js";
 import { Markup } from "telegraf";
 import { TonBot, DEFAULT_DAO_LOGO } from "./utils/constant.js";
