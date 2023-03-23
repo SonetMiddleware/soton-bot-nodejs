@@ -68,49 +68,59 @@ export async function createDaoConversation(conversation, ctx) {
 }
 
 export async function createDaoHandler(ctx, contract) {
-  const chat = await ctx.getChat();
-  console.log("1 chat: ", chat);
-  let logo = DEFAULT_DAO_LOGO; // default logo;
-  if (chat.photo) {
-    const path = await getBotFile(chat.photo.small_file_id);
-    console.log("path: ", path);
-    logo = path;
-  }
-  const author = await ctx.getAuthor();
-  const binds = await getBindResult({ tid: author.user.id });
-  const tgBind = binds.find((item) => item.platform === "Telegram");
-  const creator = tgBind.addr;
-  if (!creator) {
-    return ctx.reply("No binding address.");
-  }
+  try {
+    ctx.reply("Processing...");
+    const chat = await ctx.getChat();
+    console.log("1 chat: ", chat);
+    let logo = DEFAULT_DAO_LOGO; // default logo;
+    if (chat.photo) {
+      const path = await getBotFile(chat.photo.small_file_id);
+      console.log("path: ", path);
+      logo = path;
+    }
+    const author = await ctx.getAuthor();
+    const binds = await getBindResult({ tid: author.user.id });
+    const tgBind = binds.find((item) => item.platform === "Telegram");
+    const creator = tgBind.addr;
+    if (!creator) {
+      return ctx.reply("No binding address.");
+    }
 
-  const admins = await ctx.getChatAdministrators();
-  const isAdmin = admins.find((item) => item.user.id === author.user.id);
-  if (!isAdmin) {
-    return ctx.reply(
-      "You've not been granted admin to this group, please ask group admin to create DAO for this group."
-    );
-  }
-  const memberNum = await getGroupMemberNumber(ctx.chat.id);
-  const params = {
-    contract: contract,
-    chat_name: ctx.chat.title,
-    chat_id: ctx.chat.id,
-    logo,
-    creator,
-    member: memberNum,
-  };
-  const resp = await createDao(params);
-  if (resp) {
-    return ctx.reply(
-      `The DAO has been created successfully, thanks for using Soton Bot. Please reply command "/start" to take a review.`
-    );
-  } else {
-    return ctx.reply(`
+    const admins = await ctx.getChatAdministrators();
+    const isAdmin = admins.find((item) => item.user.id === author.user.id);
+    if (!isAdmin) {
+      return ctx.reply(
+        "You've not been granted admin to this group, please ask group admin to create DAO for this group."
+      );
+    }
+    const memberNum = await getGroupMemberNumber(ctx.chat.id);
+    const params = {
+      contract: contract,
+      chat_name: ctx.chat.title,
+      chat_id: ctx.chat.id,
+      logo,
+      creator,
+      member: memberNum,
+    };
+    const resp = await createDao(params);
+    if (resp.error || resp.code !== SUCCESS_CODE) {
+      ctx.reply(`
     Create DAO failed. Please be sure that 
 1. the collection address is correct,
 2. you're admin of this group chat, 
 3. you've got the collection NFT(s) in your TON wallet.
     `);
+      if (resp.error && typeof resp.error === "string") {
+        ctx.reply(resp.error);
+      }
+      return;
+    } else {
+      return ctx.reply(
+        `The DAO has been created successfully, thanks for using Soton Bot. Please reply command "/start" to take a review.`
+      );
+    }
+  } catch (e) {
+    console.log(e);
+    return ctx.reply(e);
   }
 }

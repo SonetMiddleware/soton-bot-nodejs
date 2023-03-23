@@ -1,3 +1,5 @@
+import loadEnv from "./utils/loadEnv.js";
+loadEnv();
 import {
   bind1WithWeb3Proof,
   createProposal,

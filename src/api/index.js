@@ -159,12 +159,13 @@ export const createDao = async (params) => {
     twitter: "",
   };
   const res = await httpRequest({ url, params: data, type: "POST" });
-  console.debug("[core-dao] vote: ", res);
-  if (res.error || res.code !== SUCCESS_CODE) {
-    return false;
-  } else {
-    return true;
-  }
+  console.log("[core-dao] vote: ", res);
+  return res;
+  // if (res.error || res.code !== SUCCESS_CODE) {
+  //   return false;
+  // } else {
+  //   return true;
+  // }
 };
 
 export const getProposalsV3 = async () => {
