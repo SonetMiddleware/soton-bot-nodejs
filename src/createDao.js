@@ -109,8 +109,8 @@ export async function createDaoHandler(ctx, contract) {
         error = resp.error;
       }
       return ctx.reply(`
-      ${error}.
-Create DAO failed. Please be sure that: 
+      Create DAO failed. ${error}.
+Please be sure that: 
 1. the collection address is correct,
 2. you're admin of this group chat, 
 3. you've got the collection NFT(s) in your TON wallet.
