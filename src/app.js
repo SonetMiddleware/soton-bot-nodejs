@@ -238,7 +238,7 @@ And try again after bound.
 
   bot.on("message", async (ctx) => {
     // console.log("updated message: ", ctx.update.message);
-    // console.log("msg: ", ctx.message);
+    console.log("msg: ", ctx.message);
     if (ctx.message.reply_to_message) {
       const msg = ctx.message.reply_to_message.text;
       const text = ctx.message.text;
