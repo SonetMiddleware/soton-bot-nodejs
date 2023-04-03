@@ -25,6 +25,7 @@ import {
   voteTelegramNFT,
   getTelegramNFTVoteStats,
 } from "./api/index.js";
+import handleCommandStats from "./commands/stats.js";
 import server from "./express.js";
 import { isBound, getBounds, formatAddress } from "./utils/index.js";
 import { msgHandler } from "./twaMsgHandler.js";
@@ -298,6 +299,8 @@ And try again after bound.
     }
   };
 
+  // bot.command("stats", handleCommandStats);
+
   // Wait for click events with specific callback data.
   bot.callbackQuery("like", async (ctx) => {
     await ctx.answerCallbackQuery({
@@ -313,7 +316,7 @@ And try again after bound.
       text: "You clicked dislike",
     });
     const callbackQuery = ctx.update.callback_query;
-    await handleNFTCallbackQuery(ctx, callbackQuery, "dislike");
+    await handleNFTCallbackQuery(ctx, callbackQuery, "unlike");
   });
   bot.callbackQuery("follow", async (ctx) => {
     console.log("follow: ", ctx.update.callback_query);
@@ -326,7 +329,7 @@ And try again after bound.
 
   bot.on("message", async (ctx) => {
     // console.log("updated message: ", ctx.update.message);
-    // console.log("msg: ", ctx.message);
+    console.log("msg: ", ctx.message);
     // await ctx.answerCallbackQuery();
     if (ctx.message.reply_to_message) {
       const msg = ctx.message.reply_to_message.text;

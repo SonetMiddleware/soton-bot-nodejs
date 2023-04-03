@@ -296,3 +296,21 @@ export const getTelegramNFTVoteStats = async (groupId, messageId) => {
     return res.data[0];
   }
 };
+
+///api/v1/tg/message/:group_id?order_by=xxx&page=xxx&gap=xxx
+export const getTelegramGroupVoteStats = async (groupId, messageId) => {
+  const url = `${API_HOST}/tg/message/${groupId}`;
+  const res = await httpRequest({
+    url,
+    params: {
+      order_by: "like",
+      page: 1,
+      gap: 10,
+    },
+    type: "GET",
+  });
+  console.log("[getTelegramGroupVoteStats]: ", res);
+  if (res.data && res.data.data) {
+    return res.data.data;
+  }
+};
