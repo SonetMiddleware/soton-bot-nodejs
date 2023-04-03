@@ -5,10 +5,11 @@ import {
   getBindResult,
   getBotFile,
   getGroupMemberNumber,
-  SUCCESS_CODE
+  SUCCESS_CODE,
 } from "./api/index.js";
 import { Markup } from "telegraf";
 import { TonBot, DEFAULT_DAO_LOGO } from "./utils/constant.js";
+import { formatAddress } from "./utils/index.js";
 export async function createDaoConversation(conversation, ctx) {
   await ctx.answerCallbackQuery();
   await ctx.reply("waiting...");

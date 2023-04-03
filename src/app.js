@@ -22,11 +22,12 @@ import {
   getBindResult,
   getBotFile,
   getGroupMemberNumber,
+  voteTelegramNFT,
+  getTelegramNFTVoteStats,
 } from "./api/index.js";
 import server from "./express.js";
-import { isBound, getBounds } from "./utils/index.js";
+import { isBound, getBounds, formatAddress } from "./utils/index.js";
 import { msgHandler } from "./twaMsgHandler.js";
-
 const port = process.env.PORT || 3000;
 const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one";
 const TonBot = process.env.TON_BOT;
@@ -236,9 +237,97 @@ And try again after bound.
     // return ctx.reply("Create dao for your group", { reply_markup: menu });
   });
 
+  const handleNFTCallbackQuery = async (ctx, callbackQuery, action) => {
+    try {
+      const message = callbackQuery.message;
+      const caption = message.caption;
+      const collectionPattern = /Collection: ([^,]+)/;
+      const nftIdPattern = /NFT Id: ([^.]+)/;
+      let collection = "",
+        nftId = "";
+      const match1 = caption.match(collectionPattern);
+      const match2 = caption.match(nftIdPattern);
+      if (match1) {
+        collection = match1[1].trim();
+      }
+      if (match2) {
+        nftId = match2[1].trim();
+      }
+
+      const voteParams = {
+        action: action,
+        undo: false,
+        group_id: message.chat.id,
+        message_id: message.message_id,
+        sender: callbackQuery.from.id,
+        nft_contract: collection,
+        nft_token_id: nftId,
+      };
+      await voteTelegramNFT(voteParams);
+      const stats = await getTelegramNFTVoteStats(
+        message.chat.id,
+        message.message_id
+      );
+      if (stats) {
+        const reply_markup = {
+          inline_keyboard: [
+            [
+              {
+                text: `Like(${stats.like})`,
+                callback_data: "like",
+              },
+              {
+                text: `Dislike(${stats.unlike})`,
+                callback_data: "dislike",
+              },
+              {
+                text: `Follow(${stats.follow})`,
+                callback_data: "follow",
+              },
+            ],
+          ],
+        };
+        await ctx.editMessageReplyMarkup({
+          chat_id: message.chat.id,
+          message_id: message.message_id,
+          reply_markup: reply_markup,
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  // Wait for click events with specific callback data.
+  bot.callbackQuery("like", async (ctx) => {
+    await ctx.answerCallbackQuery({
+      text: "You clicked Like",
+    });
+    console.log("like: ", JSON.stringify(ctx.update.callback_query));
+    const callbackQuery = ctx.update.callback_query;
+    await handleNFTCallbackQuery(ctx, callbackQuery, "like");
+  });
+  bot.callbackQuery("dislike", async (ctx) => {
+    console.log("dislike: ", ctx.update.callback_query);
+    await ctx.answerCallbackQuery({
+      text: "You clicked dislike",
+    });
+    const callbackQuery = ctx.update.callback_query;
+    await handleNFTCallbackQuery(ctx, callbackQuery, "dislike");
+  });
+  bot.callbackQuery("follow", async (ctx) => {
+    console.log("follow: ", ctx.update.callback_query);
+    await ctx.answerCallbackQuery({
+      text: "You clicked follow",
+    });
+    const callbackQuery = ctx.update.callback_query;
+    await handleNFTCallbackQuery(ctx, callbackQuery, "follow");
+  });
+
   bot.on("message", async (ctx) => {
     // console.log("updated message: ", ctx.update.message);
     // console.log("msg: ", ctx.message);
+    // await ctx.answerCallbackQuery();
     if (ctx.message.reply_to_message) {
       const msg = ctx.message.reply_to_message.text;
       const text = ctx.message.text;

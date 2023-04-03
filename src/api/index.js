@@ -256,3 +256,43 @@ export const getNFTMetadata = async (collectionName, tokenId) => {
   const res = await httpRequest({ url, params: null, type: "GET" });
   return res;
 };
+
+// {
+//   "action": "like | unlike | follow",
+//   "undo": false,
+//   "group_id": "",
+//   "message_id": "",
+//   "sender": "",
+//   "nft_contract": "",
+//   "nft_token_id": ""
+// }
+export const voteTelegramNFT = async (params) => {
+  const url = `${API_HOST}/tg/message`;
+  const res = await httpRequest({ url, params: params, type: "POST" });
+  console.log("[voteTelegramNFT]: ", params, res);
+  return res.data;
+};
+
+/// /api/v1/tg/message/:group_id/:message_id
+// "data": [
+//   {
+//     "nft_contract": "",
+//     "nft_token_id": "",
+//     "like": 10,
+//     "unlike": 19,
+//     "follow": 1
+//   }
+// ]
+// ]
+export const getTelegramNFTVoteStats = async (groupId, messageId) => {
+  const url = `${API_HOST}/tg/message/${groupId}/${messageId}`;
+  const res = await httpRequest({
+    url,
+    params: {},
+    type: "GET",
+  });
+  console.log("[getTelegramNFTVoteStats]: ", res);
+  if (res.data && res.data[0]) {
+    return res.data[0];
+  }
+};
