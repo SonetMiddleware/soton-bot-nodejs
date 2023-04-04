@@ -288,8 +288,6 @@ export const voteTelegramNFT = async (params) => {
   return res.data;
 };
 
-
-
 /// /api/v1/tg/message/:group_id/:message_id
 // "data": [
 //   {
@@ -323,6 +321,7 @@ export const getTelegramGroupVoteStats = async (groupId, messageId) => {
       order_by: "like",
       page: 1,
       gap: 10,
+      origin_msg: 1,
     },
     type: "GET",
   });
