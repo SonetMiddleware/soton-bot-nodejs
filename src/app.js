@@ -242,15 +242,15 @@ And try again after bound.
     try {
       const message = callbackQuery.message;
       const caption = message.caption;
-      const collectionPattern = /Collection: ([^,]+)/;
-      const nftIdPattern = /NFT Id: ([^.]+)/;
+      const daoId = ctx.chat.id;
+      const daos = await getDaoWithGroupId(daoId);
       let collection = "",
         nftId = "";
-      const match1 = caption.match(collectionPattern);
-      const match2 = caption.match(nftIdPattern);
-      if (match1) {
-        collection = match1[1].trim();
+      if (daos && daos.data && daos.data.contract) {
+        collection = daos.data.contract;
       }
+      const nftIdPattern = /#(\d+)/;
+      const match2 = caption.match(nftIdPattern);
       if (match2) {
         nftId = match2[1].trim();
       }
@@ -309,6 +309,21 @@ And try again after bound.
     console.log("like: ", JSON.stringify(ctx.update.callback_query));
     const callbackQuery = ctx.update.callback_query;
     await handleNFTCallbackQuery(ctx, callbackQuery, "like");
+    // await ctx.replyWithPhoto(
+    //   "AgACAgQAAx0EbZdiEwADLGQrjnR4HyhmdtEUG4D9hgGZZEv8AAIusDEbNwNVUc5Reai0cdvvAQADAgADcwADLwQ",
+    //   {
+    //     reply_markup: {
+    //       inline_keyboard: [
+    //         [
+    //           {
+    //             text: `Like(1)`,
+    //             url: `https://t.me/c/1838637587/44`,
+    //           },
+    //         ],
+    //       ],
+    //     },
+    //   }
+    // );
   });
   bot.callbackQuery("dislike", async (ctx) => {
     console.log("dislike: ", ctx.update.callback_query);

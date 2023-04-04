@@ -63,7 +63,22 @@ export const getBindResult = async (params) => {
     return [];
   }
 };
-
+// {
+//   "chain_name": [
+//       "TONtest"
+//   ],
+//   "id": "-1001838637587",
+//   "name": "CatGreenDao",
+//   "img": "ipfs://QmP1f74YEAj6Hn9nTwFY2PxZUtW1srDkqf8jcLzaD3H98p",
+//   "dao": {
+//       "name": "CatGreenDao",
+//       "start_date": 1680341368006,
+//       "total_member": 3,
+//       "facebook": "",
+//       "twitter": ""
+//   },
+//   "contract": "UQC_cMaeuGBKCGJapZpyQaBTDIUiz53UHE4bGalapgBERd8y"
+// }
 export const getDaoWithGroupId = async (id) => {
   const url = `${API_HOST}/collection/${id}`;
   const params = {};
@@ -267,11 +282,13 @@ export const getNFTMetadata = async (collectionName, tokenId) => {
 //   "nft_token_id": ""
 // }
 export const voteTelegramNFT = async (params) => {
-  const url = `${API_HOST}/tg/message`;
+  const url = `${API_HOST}/tg/message/act`;
   const res = await httpRequest({ url, params: params, type: "POST" });
   console.log("[voteTelegramNFT]: ", params, res);
   return res.data;
 };
+
+
 
 /// /api/v1/tg/message/:group_id/:message_id
 // "data": [
