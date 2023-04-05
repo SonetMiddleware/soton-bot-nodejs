@@ -96,8 +96,9 @@ export async function createDaoHandler(ctx, contract) {
       );
     }
     const memberNum = await getGroupMemberNumber(ctx.chat.id);
+    const _contract = formatAddress(contract);
     const params = {
-      contract: contract,
+      contract: _contract,
       chat_name: ctx.chat.title,
       chat_id: ctx.chat.id,
       logo,
