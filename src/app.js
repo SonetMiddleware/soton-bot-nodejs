@@ -24,11 +24,14 @@ import {
   getGroupMemberNumber,
   voteTelegramNFT,
   getTelegramNFTVoteStats,
+  getProposalList,
 } from "./api/index.js";
 import handleCommandStats from "./commands/stats.js";
+import handleCommandProposals from "./commands/proposals.js";
 import server from "./express.js";
 import { isBound, getBounds, formatAddress } from "./utils/index.js";
 import { msgHandler } from "./twaMsgHandler.js";
+import { CHAIN_NAME } from "./api/index.js";
 const port = process.env.PORT || 3000;
 const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one";
 const TonBot = process.env.TON_BOT;
@@ -299,47 +302,112 @@ And try again after bound.
     }
   };
 
+  const handleProposalVoteCallbackQuery = async (
+    ctx,
+    callbackQuery,
+    proposal_id,
+    vote_index
+  ) => {
+    const daoId = ctx.chat.id;
+    const userId = callbackQuery.from.id;
+    const binds = await getBounds(userId);
+    if (!binds || binds.length === 0) {
+      await ctx.answerCallbackQuery({
+        text: "You need to bind your address with Telegram account before vote.",
+      });
+      return;
+    }
+    const address = binds[0].addr;
+    const proposals = await getProposalList({
+      dao: daoId,
+    });
+    const proposal = proposals.find((item) => item.id === proposal_id);
+    if (!proposal) {
+      return;
+    }
+    try {
+      const option = proposal.items[vote_index];
+      const params = {
+        voter: address,
+        collectionId: daoId,
+        proposalId: proposal_id,
+        item: option,
+        sig: "",
+        chain_name: CHAIN_NAME,
+      };
+      const result = await voteProposal(params);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      await ctx.answerCallbackQuery({
+        text: "Voted",
+      });
+    }
+  };
+
   bot.command("stats", handleCommandStats);
+  bot.command("proposals", handleCommandProposals);
 
   // Wait for click events with specific callback data.
-  bot.callbackQuery("like", async (ctx) => {
-    await ctx.answerCallbackQuery({
-      text: "You clicked Like",
-    });
-    console.log("like: ", JSON.stringify(ctx.update.callback_query));
-    const callbackQuery = ctx.update.callback_query;
-    await handleNFTCallbackQuery(ctx, callbackQuery, "like");
-    // await ctx.replyWithPhoto(
-    //   "AgACAgQAAx0EbZdiEwADLGQrjnR4HyhmdtEUG4D9hgGZZEv8AAIusDEbNwNVUc5Reai0cdvvAQADAgADcwADLwQ",
-    //   {
-    //     reply_markup: {
-    //       inline_keyboard: [
-    //         [
-    //           {
-    //             text: `Like(1)`,
-    //             url: `https://t.me/c/1838637587/44`,
-    //           },
-    //         ],
-    //       ],
-    //     },
-    //   }
-    // );
-  });
-  bot.callbackQuery("dislike", async (ctx) => {
-    console.log("dislike: ", ctx.update.callback_query);
-    await ctx.answerCallbackQuery({
-      text: "You clicked dislike",
-    });
-    const callbackQuery = ctx.update.callback_query;
-    await handleNFTCallbackQuery(ctx, callbackQuery, "unlike");
-  });
-  bot.callbackQuery("follow", async (ctx) => {
-    console.log("follow: ", ctx.update.callback_query);
-    await ctx.answerCallbackQuery({
-      text: "You clicked follow",
-    });
-    const callbackQuery = ctx.update.callback_query;
-    await handleNFTCallbackQuery(ctx, callbackQuery, "follow");
+  // bot.callbackQuery("like", async (ctx) => {
+  //   await ctx.answerCallbackQuery({
+  //     text: "You clicked Like",
+  //   });
+  //   console.log("like: ", JSON.stringify(ctx.update.callback_query));
+  //   const callbackQuery = ctx.update.callback_query;
+  //   await handleNFTCallbackQuery(ctx, callbackQuery, "like");
+  // });
+  // bot.callbackQuery("dislike", async (ctx) => {
+  //   console.log("dislike: ", ctx.update.callback_query);
+  //   await ctx.answerCallbackQuery({
+  //     text: "You clicked dislike",
+  //   });
+  //   const callbackQuery = ctx.update.callback_query;
+  //   await handleNFTCallbackQuery(ctx, callbackQuery, "unlike");
+  // });
+  // bot.callbackQuery("follow", async (ctx) => {
+  //   console.log("follow: ", ctx.update.callback_query);
+  //   await ctx.answerCallbackQuery({
+  //     text: "You clicked follow",
+  //   });
+  //   const callbackQuery = ctx.update.callback_query;
+  //   await handleNFTCallbackQuery(ctx, callbackQuery, "follow");
+  // });
+  bot.on("callback_query", async (ctx) => {
+    console.log(ctx.update.callback_query);
+    const query = ctx.update.callback_query;
+    const callbackData = query.data;
+    if (callbackData.startsWith("soton_vote")) {
+      const proposal_id = callbackData.split(":")[1];
+      const vote_index = callbackData.split(":")[2];
+      await handleProposalVoteCallbackQuery(
+        ctx,
+        query,
+        proposal_id,
+        vote_index
+      );
+    } else if (callbackData === "like") {
+      await ctx.answerCallbackQuery({
+        text: "You clicked Like",
+      });
+      console.log("like: ", JSON.stringify(ctx.update.callback_query));
+      const callbackQuery = ctx.update.callback_query;
+      await handleNFTCallbackQuery(ctx, callbackQuery, "like");
+    } else if (callbackData === "dislike") {
+      console.log("dislike: ", ctx.update.callback_query);
+      await ctx.answerCallbackQuery({
+        text: "You clicked dislike",
+      });
+      const callbackQuery = ctx.update.callback_query;
+      await handleNFTCallbackQuery(ctx, callbackQuery, "unlike");
+    } else if (callbackData === "follow") {
+      console.log("follow: ", ctx.update.callback_query);
+      await ctx.answerCallbackQuery({
+        text: "You clicked follow",
+      });
+      const callbackQuery = ctx.update.callback_query;
+      await handleNFTCallbackQuery(ctx, callbackQuery, "follow");
+    }
   });
 
   bot.on("message", async (ctx) => {

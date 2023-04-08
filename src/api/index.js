@@ -330,3 +330,37 @@ export const getTelegramGroupVoteStats = async (groupId, messageId) => {
     return res.data.data;
   }
 };
+
+//params: {
+//   dao: string;
+//   page?: number;
+//   gap?: number;
+//   chain_name: string;
+//   currentBlockHeight?: number;
+// }
+export const getProposalList = async (params) => {
+  params.chain_name = CHAIN_NAME;
+  const v2 = API_HOST.slice(0, API_HOST.length - 1) + "2";
+  const url = `${v2}/proposal`;
+  const proposals = await httpRequest({ url, params });
+  console.log("[getProposalList]: ", proposals);
+  const res = [];
+  if (proposals && proposals.data && proposals.data.data) {
+    for (const p of proposals.data.data) {
+      res.push({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        startTime: p.start_time,
+        snapshotBlock: p.snapshot_block,
+        endTime: p.end_time,
+        ballotThreshold: p.ballot_threshold,
+        status: p.status,
+        items: p.items,
+        results: p.results,
+        voteType: p.voter_type,
+      });
+    }
+  }
+  return res;
+};
