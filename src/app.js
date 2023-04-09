@@ -335,7 +335,8 @@ And try again after bound.
         sig: "",
         chain_name: CHAIN_NAME,
       };
-      const result = await voteProposal(params);
+      const result = await vote(params);
+      console.log("[vote]:", result);
     } catch (e) {
       console.log(e);
     } finally {

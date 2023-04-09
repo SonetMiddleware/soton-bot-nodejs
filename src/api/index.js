@@ -138,25 +138,25 @@ export const createProposal = async (params) => {
   console.debug("[core-dao] createProposal: ", res);
   return res;
 };
-export const vote = async (params) => {
-  const url = `${API_HOST}/proposal/vote`;
-  const { voter, collectionId, proposalId, item, sig, chain_name } = params;
-  const data = {
-    voter,
-    collection_id: collectionId,
-    proposal_id: proposalId,
-    item,
-    sig,
-    chain_name,
-  };
-  const res = await httpRequest({ url, params: data, type: "POST" });
-  console.debug("[core-dao] vote: ", res);
-  if (res.error || res.code !== SUCCESS_CODE) {
-    return false;
-  } else {
-    return true;
-  }
-};
+// export const vote = async (params) => {
+//   const url = `${API_HOST}/proposal/vote`;
+//   const { voter, collectionId, proposalId, item, sig, chain_name } = params;
+//   const data = {
+//     voter,
+//     collection_id: collectionId,
+//     proposal_id: proposalId,
+//     item,
+//     sig,
+//     chain_name,
+//   };
+//   const res = await httpRequest({ url, params: data, type: "POST" });
+//   console.debug("[core-dao] vote: ", res);
+//   if (res.error || res.code !== SUCCESS_CODE) {
+//     return false;
+//   } else {
+//     return true;
+//   }
+// };
 
 export const createDao = async (params) => {
   const url = `${API_HOST}/dao/tg/create`;
@@ -331,6 +331,25 @@ export const getTelegramGroupVoteStats = async (groupId, messageId) => {
   }
 };
 
+///api/v1/tg/message/:group_id?order_by=xxx&page=xxx&gap=xxx
+export const getTgRawMessages = async (groupId, messageId) => {
+  const url = `${API_HOST}/tg/raw-message/`;
+  const res = await httpRequest({
+    url,
+    params: {
+      group_id: groupId,
+      type: "proposal",
+      // page: 1,
+      // gap: 10,
+    },
+    type: "GET",
+  });
+  console.log("[getTgRawMessages]: ", res);
+  if (res.data && res.data.data) {
+    return res.data.data;
+  }
+};
+
 //params: {
 //   dao: string;
 //   page?: number;
@@ -363,4 +382,20 @@ export const getProposalList = async (params) => {
     }
   }
   return res;
+};
+
+// : {
+//   voter: string;
+//   collectionId: string;
+//   proposalId: string;
+//   item: string;
+//   sig: string;
+//   chain_name: string;
+// }
+
+export const vote = async (params) => {
+  const TON_SERVER = process.env.TON_SERVER;
+  const { voter, collectionId, proposalId, item, sig, chain_name } = params;
+  const url = `${TON_SERVER}/api/vote`;
+  return await httpRequest({ url, params, type: "POST" });
 };
