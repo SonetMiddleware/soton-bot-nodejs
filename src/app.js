@@ -426,6 +426,12 @@ And try again after bound.
         if (from !== admin) {
           return;
         }
+        //TODO verify contract address
+        try {
+          const contract = formatAddress(text);
+        } catch (e) {
+          return ctx.reply("Create DAO failed. Invalid collection contract.");
+        }
         return createDaoHandler(ctx, text);
       }
     }
