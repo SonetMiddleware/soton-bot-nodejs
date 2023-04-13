@@ -430,7 +430,7 @@ And try again after bound.
         try {
           const contract = formatAddress(text);
         } catch (e) {
-          return ctx.reply("Create DAO failed. Invalid collection contract.");
+          return ctx.reply("Create DAO failed. Invalid collection contract address.");
         }
         return createDaoHandler(ctx, text);
       }
