@@ -125,6 +125,13 @@ Please be sure that:
     }
   } catch (e) {
     console.log(e);
-    return ctx.reply(e);
+    // return ctx.reply(e);
+    return ctx.reply(`
+    Create DAO failed.
+Please be sure that: 
+1. the collection address is correct,
+2. you're admin of this group chat, 
+3. you've got the collection NFT(s) in your TON wallet.
+  `);
   }
 }
