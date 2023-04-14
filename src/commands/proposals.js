@@ -5,20 +5,23 @@ const TonBot = process.env.TON_BOT;
 
 const handleCommandProposals = async (ctx) => {
   if (ctx.chat.type === "private") {
-    const text = `Sorry, command "/stats" is enabled in chat group/channel.`;
+    const text = `Sorry, command "/proposals" is enabled in chat group/channel.`;
     return ctx.reply(text);
   } else {
     const group_id = String(ctx.chat.id);
+    console.log(ctx.chat);
     let privateGroup = group_id;
-    if (ctx.chat.type === "supergroup" && group_id.startsWith("-100")) {
-      privateGroup = group_id.substring(4);
+    if (ctx.chat.type === "supergroup") {
+      if (group_id.startsWith("-100")) {
+        privateGroup = group_id.substring(4);
+      }
     }
     const list = await getProposalList({
       dao: group_id,
     });
     const tgMsgs = await getTgRawMessages(group_id);
-    console.log("list: ", JSON.stringify(list));
-    console.log("tgMsgs: ", JSON.stringify(tgMsgs));
+    // console.log("list: ", JSON.stringify(list));
+    // console.log("tgMsgs: ", JSON.stringify(tgMsgs));
 
     const proposals = [];
     for (const item of list) {
@@ -31,14 +34,21 @@ const handleCommandProposals = async (ctx) => {
         break;
       }
     }
-    console.log("proposals: ", proposals);
+    // console.log("proposals: ", proposals);
 
-    const buttons = proposals.map((item) => [
-      Markup.button.url(
-        `${item.title}`,
-        `https://t.me/c/${privateGroup}/${item.message_id}`
-      ),
-    ]);
+    const buttons = proposals.map((item) => {
+      // console.log(
+      //   "link: ",
+      //   `https://t.me/c/${privateGroup}/${item.message_id}`
+      // );
+      return [
+        Markup.button.url(
+          `${item.title}`,
+          `https://t.me/c/${privateGroup}/${item.message_id}`
+        ),
+      ];
+    });
+
     buttons.push([
       Markup.button.url(
         "View proposals",

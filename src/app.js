@@ -37,7 +37,7 @@ const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one";
 const TonBot = process.env.TON_BOT;
 
 server.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Soton bot api listening on port ${port}`);
 });
 
 async function runApp() {
@@ -86,7 +86,6 @@ async function runApp() {
 
   bot.command("start", async (ctx) => {
     // console.log(ctx.update.message);
-    console.log("start: ");
     const author = await ctx.getAuthor();
     // console.log("1 author: ", author);
     if (ctx.chat.type === "private") {
@@ -119,18 +118,17 @@ async function runApp() {
       );
     }
     const chat = await ctx.getChat();
-    console.log("1 chat: ", chat);
     let logo;
     if (chat.photo) {
       const path = await getBotFile(chat.photo.small_file_id);
-      console.log("path: ", path);
+      // console.log("path: ", path);
       logo = path;
     }
 
     //群聊
     const daoId = ctx.chat.id;
     const daos = await getDaoWithGroupId(daoId);
-    console.log("daos: ", daos);
+    // console.log("daos: ", daos);
     if (daos && daos.data && daos.data.dao) {
       const text = `Thanks for using Soton Bot. I'm enabling NFT DAO to this group. Please review the proposals for this group DAO, and feel free to join the DAO and provide your opinion.`;
       return ctx.reply(
@@ -173,11 +171,15 @@ Please add me to your chat groups, with group admin role,  and use "create_dao" 
         ])
       );
     }
-
+    // The group type should be supergroup or needs set to public
+    const chat = await ctx.getChat();
+    if (chat.type === "group") {
+      return ctx.reply(`Please set your group to public first. 
+Press the group's name and click the pencil icon or "edit" button. Tap the "Group Type" and select "Public Group."`);
+    }
     //群聊
     // 判断admin
     const author = await ctx.getAuthor();
-    console.log("1 author: ", author);
     const admins = await ctx.getChatAdministrators();
     const isAdmin = admins.find((item) => item.user.id === author.user.id);
     if (!isAdmin) {
@@ -224,21 +226,7 @@ And try again after bound.
           },
         })
       );
-
-      // console.log(ctx.update.message);
-      // console.log("start: ");
-      // const text = ctx.update.message.text;
-      // if (/^\/create_dao ([\w-]+)$/.test(text)) {
-      //   const contract = text.substring(12);
-      //   return createDaoHandler(ctx, contract);
-      // } else {
-      //   const text = `Please add NFT collection address to the command, that I can create DAO upon the collection and the NFT hodlers will be DAO members, syntax /create_dao <collection_address>`;
-      //   return ctx.reply(text);
-      // }
     }
-    // return ctx.reply("Create Dao for your group. Enter nft contract:  ");
-    // const menu = new InlineKeyboard().text("Click to start", "createDao");
-    // return ctx.reply("Create dao for your group", { reply_markup: menu });
   });
 
   const handleNFTCallbackQuery = async (ctx, callbackQuery, action) => {
@@ -298,7 +286,7 @@ And try again after bound.
         });
       }
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   };
 
@@ -336,7 +324,7 @@ And try again after bound.
         chain_name: CHAIN_NAME,
       };
       const result = await vote(params);
-      console.log("[vote]:", result);
+      // console.log("[vote]:", result);
     } catch (e) {
       console.log(e);
     } finally {
@@ -349,33 +337,8 @@ And try again after bound.
   bot.command("stats", handleCommandStats);
   bot.command("proposals", handleCommandProposals);
 
-  // Wait for click events with specific callback data.
-  // bot.callbackQuery("like", async (ctx) => {
-  //   await ctx.answerCallbackQuery({
-  //     text: "You clicked Like",
-  //   });
-  //   console.log("like: ", JSON.stringify(ctx.update.callback_query));
-  //   const callbackQuery = ctx.update.callback_query;
-  //   await handleNFTCallbackQuery(ctx, callbackQuery, "like");
-  // });
-  // bot.callbackQuery("dislike", async (ctx) => {
-  //   console.log("dislike: ", ctx.update.callback_query);
-  //   await ctx.answerCallbackQuery({
-  //     text: "You clicked dislike",
-  //   });
-  //   const callbackQuery = ctx.update.callback_query;
-  //   await handleNFTCallbackQuery(ctx, callbackQuery, "unlike");
-  // });
-  // bot.callbackQuery("follow", async (ctx) => {
-  //   console.log("follow: ", ctx.update.callback_query);
-  //   await ctx.answerCallbackQuery({
-  //     text: "You clicked follow",
-  //   });
-  //   const callbackQuery = ctx.update.callback_query;
-  //   await handleNFTCallbackQuery(ctx, callbackQuery, "follow");
-  // });
   bot.on("callback_query", async (ctx) => {
-    console.log(ctx.update.callback_query);
+    // console.log(ctx.update.callback_query);
     const query = ctx.update.callback_query;
     const callbackData = query.data;
     if (callbackData.startsWith("soton_vote")) {
@@ -391,18 +354,15 @@ And try again after bound.
       await ctx.answerCallbackQuery({
         text: "You clicked Like",
       });
-      console.log("like: ", JSON.stringify(ctx.update.callback_query));
       const callbackQuery = ctx.update.callback_query;
       await handleNFTCallbackQuery(ctx, callbackQuery, "like");
     } else if (callbackData === "dislike") {
-      console.log("dislike: ", ctx.update.callback_query);
       await ctx.answerCallbackQuery({
         text: "You clicked dislike",
       });
       const callbackQuery = ctx.update.callback_query;
       await handleNFTCallbackQuery(ctx, callbackQuery, "unlike");
     } else if (callbackData === "follow") {
-      console.log("follow: ", ctx.update.callback_query);
       await ctx.answerCallbackQuery({
         text: "You clicked follow",
       });
@@ -421,7 +381,7 @@ And try again after bound.
       if (msg.includes(CREATE_DAO_TEXT) && text) {
         // 判断from 是admin
         const admin = msg.substring(msg.indexOf("@") + 1);
-        console.log("admin@: ", admin);
+        // console.log("admin@: ", admin);
         const from = ctx.message.from.username;
         if (from !== admin) {
           return;
@@ -430,7 +390,9 @@ And try again after bound.
         try {
           const contract = formatAddress(text);
         } catch (e) {
-          return ctx.reply("Create DAO failed. Invalid collection contract address.");
+          return ctx.reply(
+            "Create DAO failed. Invalid collection contract address."
+          );
         }
         return createDaoHandler(ctx, text);
       }
