@@ -396,6 +396,6 @@ export const getProposalList = async (params) => {
 export const vote = async (params) => {
   const TON_SERVER = process.env.TON_SERVER;
   const { voter, collectionId, proposalId, item, sig, chain_name } = params;
-  const url = `${TON_SERVER}/api/vote`;
+  const url = `${API_HOST}/proposal/vote`;
   return await httpRequest({ url, params, type: "POST" });
 };
