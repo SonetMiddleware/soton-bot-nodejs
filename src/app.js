@@ -147,12 +147,44 @@ async function runApp() {
             "Go to market",
             `${process.env.MARKET_COLLECTION}/${daos.data.contract}`
           ),
+          // Markup.button.url("Soton", `${process.env.TWA_URL}`),
         ])
       );
     } else {
       const text = `Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. I'm going to add NFT DAO support to this group. Please create DAO for this group and NFT collection, with /create_dao command in chat.`;
       return ctx.reply(text);
     }
+  });
+
+  bot.command("chat_info", async (ctx) => {
+    console.log(ctx.chat);
+    if (ctx.chat.type === "private") return;
+    const daoId = ctx.chat.id;
+    const daos = await getDaoWithGroupId(daoId);
+    const response = {
+      chatId: ctx.chat.id,
+      chatName: ctx.chat.title,
+      daoId: "",
+      collectionId: "",
+      adminId: "",
+    };
+    console.log(daos);
+    if (daos && daos.data && daos.data) {
+      const data = daos.data;
+      response.daoId = data.id;
+      response.collectionId = data.contract;
+    }
+    const admins = await ctx.getChatAdministrators();
+    if (admins[0]) {
+      response.adminId = admins[0].user.id;
+    }
+    return ctx.reply(`
+      Chat Id: ${response.chatId}
+ChatName: ${response.chatName}
+DAO Id: ${response.daoId}
+Collection Id: ${response.collectionId}
+Admin Id: ${response.adminId}
+      `);
   });
 
   bot.command("create_dao", async (ctx) => {
@@ -373,7 +405,7 @@ And try again after bound.
 
   bot.on("message", async (ctx) => {
     // console.log("updated message: ", ctx.update.message);
-    // console.log("msg: ", ctx.message);
+    console.log("msg: ", ctx.message);
     // await ctx.answerCallbackQuery();
     if (ctx.message.reply_to_message) {
       const msg = ctx.message.reply_to_message.text;

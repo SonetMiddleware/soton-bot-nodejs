@@ -64,7 +64,10 @@ const handleCommandStats = async (ctx) => {
         caption: `<a href="https://t.me/c/${privateGroup}/${item.message_id}">#${item.nft_token_id} ${item.like} like(s)</a>`,
       };
     });
-    await ctx.replyWithMediaGroup(photos);
+    if (photos.length > 0) {
+      await ctx.replyWithMediaGroup(photos);
+    }
+    return;
     // return ctx.reply("Stats: ", Markup.inlineKeyboard(buttons));
   }
 };

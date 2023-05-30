@@ -328,6 +328,8 @@ export const getTelegramGroupVoteStats = async (groupId, messageId) => {
   console.log("[getTelegramGroupVoteStats]: ", res);
   if (res.data && res.data.data) {
     return res.data.data;
+  } else {
+    return [];
   }
 };
 
