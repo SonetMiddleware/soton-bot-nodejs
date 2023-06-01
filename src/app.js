@@ -410,7 +410,7 @@ Please add me to your chat groups, with group admin role,  and use "imagine" com
   bot.command("proposals", handleCommandProposals);
 
   bot.on("callback_query", async (ctx) => {
-    // console.log(ctx.update.callback_query);
+    console.log(ctx.update.callback_query);
     const query = ctx.update.callback_query;
     const callbackData = query.data;
     if (callbackData.startsWith("soton_vote")) {
@@ -440,6 +440,11 @@ Please add me to your chat groups, with group admin role,  and use "imagine" com
       });
       const callbackQuery = ctx.update.callback_query;
       await handleNFTCallbackQuery(ctx, callbackQuery, "follow");
+    } else if (callbackData === "mint_prompt") {
+      //TODO save info to server
+      await ctx.answerCallbackQuery({
+        text: "Please open TWA to mint",
+      });
     }
   });
 
