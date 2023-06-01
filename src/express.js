@@ -9,6 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import axios from "axios";
 import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 
 const chain_name = process.env.CHAIN_NAME; // "TONtest";
 const app = express();
@@ -58,20 +59,35 @@ app.post("/api/bind", async (req, res) => {
   }
 });
 
+const saveBase64ToFile = async (base64Str, fileName) => {
+  return new Promise((resolve, reject) => {
+    const imgStr = base64Str.split(",");
+    const imgBuffer = Buffer.from(imgStr[imgStr.length - 1], "base64");
+    const readableStream = new Readable();
+    const writeStream = fs.createWriteStream(fileName);
+    readableStream.push(imgBuffer);
+    readableStream.push(null);
+    readableStream.pipe(writeStream);
+    // Listen for errors on the write stream
+    writeStream.on("error", (err) => {
+      reject(err);
+    });
+
+    // Listen for the 'finish' event to know when the file has been saved
+    writeStream.on("finish", () => {
+      resolve(fileName);
+    });
+  });
+};
+
 app.post("/api/sdCallback", async (req, res) => {
-  const fileName = `${Date.now()}.png`;
+  const fileName = `tes.png`;
   const filePath = path.resolve(process.cwd(), fileName);
   try {
     const { prompt, extra, image } = req.body;
     const extraJson = JSON.parse(extra);
-    const imgStr = image.split(",");
-    const imgBuffer = Buffer.from(imgStr[imgStr.length - 1], "base64");
-    console.log(imgBuffer.length);
-    var s = new Readable();
-    s.push(imgBuffer);
-    s.push(null);
-    s.pipe(fs.createWriteStream(fileName));
 
+    await saveBase64ToFile(image, fileName);
     const form = new FormData();
     // Create a form and append image with additional fields
     const fileStream = fs.createReadStream(fileName);
@@ -104,6 +120,9 @@ app.post("/api/sdCallback", async (req, res) => {
     console.log(response.data);
     // delete temp img
     res.json(response.data);
+    // form.on("close", () => {
+    //   fs.unlink(fileName);
+    // });
   } catch (e) {
     console.log(e);
     res.json(e);
