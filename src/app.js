@@ -25,13 +25,25 @@ import {
   voteTelegramNFT,
   getTelegramNFTVoteStats,
   getProposalList,
+  httpRequest,
 } from "./api/index.js";
 import handleCommandStats from "./commands/stats.js";
 import handleCommandProposals from "./commands/proposals.js";
 import server from "./express.js";
-import { isBound, getBounds, formatAddress } from "./utils/index.js";
+import {
+  isBound,
+  getBounds,
+  formatAddress,
+  dataURLtoFile,
+} from "./utils/index.js";
 import { msgHandler } from "./twaMsgHandler.js";
 import { CHAIN_NAME } from "./api/index.js";
+import FormData from "form-data";
+import * as fs from "fs";
+import * as path from "path";
+
+import axios from "axios";
+import { Readable } from "stream";
 const port = process.env.PORT || 3000;
 const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one";
 const TonBot = process.env.TON_BOT;
@@ -84,6 +96,7 @@ async function runApp() {
   const CREATE_DAO_TEXT =
     "To create a DAO based on a live NFT collection for this chat. Please reply the NFT collection address.";
 
+  const IMAGINE_TEXT = "Please enter your prompt to generate image with AI";
   bot.command("start", async (ctx) => {
     // console.log(ctx.update.message);
     const author = await ctx.getAuthor();
@@ -261,6 +274,33 @@ And try again after bound.
     }
   });
 
+  bot.command("imagine", async (ctx) => {
+    const chat = ctx.chat;
+    if (chat.type === "private") {
+      const text = `
+      Sorry, command "/imagine" is enabled in chat group/channel.\n
+Please add me to your chat groups, with group admin role,  and use "imagine" command in the chat group.
+      `;
+      return ctx.reply(
+        text,
+        Markup.inlineKeyboard([
+          Markup.button.url(
+            "Add to group",
+            `https://telegram.me/${TonBot}?startgroup=true`
+          ),
+        ])
+      );
+    }
+    const author = await ctx.getAuthor();
+    const text = IMAGINE_TEXT;
+    return ctx.reply(text + ` @${author.user.username}`, {
+      reply_markup: {
+        force_reply: true,
+        selective: true,
+      },
+    });
+  });
+
   const handleNFTCallbackQuery = async (ctx, callbackQuery, action) => {
     try {
       const message = callbackQuery.message;
@@ -405,12 +445,14 @@ And try again after bound.
 
   bot.on("message", async (ctx) => {
     // console.log("updated message: ", ctx.update.message);
-    console.log("msg: ", ctx.message);
+
+    // console.log("msg: ", ctx.message);
     // await ctx.answerCallbackQuery();
     if (ctx.message.reply_to_message) {
       const msg = ctx.message.reply_to_message.text;
       const text = ctx.message.text;
       if (msg.includes(CREATE_DAO_TEXT) && text) {
+        // handle create dao reply
         // 判断from 是admin
         const admin = msg.substring(msg.indexOf("@") + 1);
         // console.log("admin@: ", admin);
@@ -427,6 +469,21 @@ And try again after bound.
           );
         }
         return createDaoHandler(ctx, text);
+      } else if (msg.includes(IMAGINE_TEXT) && text) {
+        // handle imagine reply
+        // call sd server
+        const chat = ctx.message.chat;
+        const user = ctx.message.from;
+        const params = {
+          prompt: text,
+          extra: JSON.stringify({
+            chat_id: chat.id,
+            message_id: ctx.message.message_id,
+            user_id: user.id,
+            user_name: user.username,
+          }),
+        };
+        console.log(params);
       }
     }
     if (ctx.message.web_app_data) {

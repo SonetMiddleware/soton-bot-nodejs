@@ -9,7 +9,7 @@ export const CHAIN_NAME = process.env.CHAIN_NAME;
 export const API_ORIGIN = process.env.API_ORIGIN;
 export async function httpRequest(req) {
   const response = {};
-  const { url, params, type } = req;
+  const { url, params, type, requestType } = req;
   console.log("params: ", url, params);
   try {
     let res;
@@ -18,6 +18,7 @@ export async function httpRequest(req) {
         url,
         method: "POST",
         data: params,
+        requestType,
         headers: { authorization: "TG Robot Platwin Soda" },
       });
     } else {
