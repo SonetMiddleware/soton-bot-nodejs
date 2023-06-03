@@ -9,7 +9,16 @@ import * as path from "path";
 import axios from "axios";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
-
+import multer from "multer";
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // 上传文件的存储目录
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname); // 上传文件的原始名称
+  },
+});
+const upload = multer({ storage: storage });
 const chain_name = process.env.CHAIN_NAME; // "TONtest";
 const app = express();
 app.use(cors());
@@ -18,7 +27,10 @@ app.use(bodyParser.json());
 var log = console.log;
 
 console.log = function () {
-  log.apply(console, [`[${new Date().toISOString()}]`].concat(arguments));
+  const timestamp = new Date().toLocaleString();
+  const args = Array.from(arguments);
+  args.unshift(`[${timestamp}]`);
+  log.apply(console, args);
 };
 
 app.get("/", (req, res) => {
@@ -85,19 +97,24 @@ const saveBase64ToFile = async (base64Str, fileName) => {
   });
 };
 
-app.post("/api/sdCallback", async (req, res) => {
-  const fileName = `${Date.now}.png`;
-  const filePath = path.resolve(process.cwd(), fileName);
-  try {
-    const { prompt, extra, image } = req.body;
-    console.log(extra);
-    const extraJson = JSON.parse(extra);
+app.post("/api/sdCallback", upload.single("image"), async (req, res) => {
+  // const fileName = `${Date.now}.png`;
+  // const filePath = path.resolve(process.cwd(), fileName);
+  const { originalname, filename, path } = req.file;
 
-    await saveBase64ToFile(image, fileName);
+  try {
+    const { prompt, extra } = req.body;
+    let extraJson = JSON.parse(extra);
+    if (typeof extraJson === "string") {
+      extraJson = JSON.parse(extraJson);
+    }
+    console.log(extraJson);
+    console.log(originalname, filename, path);
+    // await saveBase64ToFile(image, fileName);
     const form = new FormData();
     // Create a form and append image with additional fields
-    const fileStream = fs.createReadStream(fileName);
-    form.append("photo", fileStream);
+    // const fileStream = fs.createReadStream(fileName);
+    form.append("photo", fs.createReadStream(path));
     form.append("caption", prompt);
     form.append("chat_id", extraJson.chat_id);
     form.append("reply_to_message_id", extraJson.message_id);
@@ -133,7 +150,7 @@ app.post("/api/sdCallback", async (req, res) => {
     console.log(e);
     res.json(e);
   } finally {
-    fs.unlinkSync(fileName);
+    fs.unlinkSync(path);
   }
 });
 

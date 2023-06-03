@@ -35,7 +35,8 @@
     "telegraf": "^4.11.2",
     "ton": "^12.1.5",
     "tonweb": "^0.0.60",
-    "form-data": "^4.0.0"
+    "form-data": "^4.0.0",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
     "body-parser": "^1.20.1",
