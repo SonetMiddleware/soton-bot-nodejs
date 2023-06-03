@@ -90,6 +90,7 @@ app.post("/api/sdCallback", async (req, res) => {
   const filePath = path.resolve(process.cwd(), fileName);
   try {
     const { prompt, extra, image } = req.body;
+    console.log(extra);
     const extraJson = JSON.parse(extra);
 
     await saveBase64ToFile(image, fileName);
