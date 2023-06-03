@@ -3,7 +3,6 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { bind1WithWeb3Proof, createProposal, vote } from "./api/index.js";
-
 import FormData from "form-data";
 import * as fs from "fs";
 import * as path from "path";
@@ -15,6 +14,12 @@ const chain_name = process.env.CHAIN_NAME; // "TONtest";
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+
+var log = console.log;
+
+console.log = function () {
+  log.apply(console, [`[${new Date().toISOString()}]`].concat(arguments));
+};
 
 app.get("/", (req, res) => {
   res.send("Hello Soton!");
