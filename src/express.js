@@ -81,7 +81,7 @@ const saveBase64ToFile = async (base64Str, fileName) => {
 };
 
 app.post("/api/sdCallback", async (req, res) => {
-  const fileName = `tes.png`;
+  const fileName = `${Date.now}.png`;
   const filePath = path.resolve(process.cwd(), fileName);
   try {
     const { prompt, extra, image } = req.body;
