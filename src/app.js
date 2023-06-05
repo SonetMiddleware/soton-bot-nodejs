@@ -487,14 +487,16 @@ Please add me to your chat groups, with group admin role,  and use "imagine" com
             user_id: user.id,
             user_name: user.username,
           }),
+          callbackUrl: process.env.SD_CALLBACK,
         };
-        const url = "https://sd-api.looplast.com/txtimg";
+        const url = process.env.SD_SERVER;
         const res = await axios.request({
           url,
           method: "POST",
           data: params,
           headers: {
             "Content-Type": "application/Json",
+            Token: process.env.SD_SERVER_TOKEN,
           },
         });
         console.log(res);
