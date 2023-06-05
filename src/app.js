@@ -488,6 +488,16 @@ Please add me to your chat groups, with group admin role,  and use "imagine" com
             user_name: user.username,
           }),
         };
+        const url = "https://sd-api.looplast.com/txtimg";
+        const res = await axios.request({
+          url,
+          method: "POST",
+          data: params,
+          headers: {
+            "Content-Type": "application/Json",
+          },
+        });
+        console.log(res);
         console.log(params);
       }
     }
