@@ -276,17 +276,16 @@ And try again after bound.
 
   bot.command("imagine", async (ctx) => {
     const chat = ctx.chat;
-    if (chat.type === "private") {
+    if (chat.type !== "private") {
       const text = `
-      Sorry, command "/imagine" is enabled in chat group/channel.\n
-Please add me to your chat groups, with group admin role,  and use "imagine" command in the chat group.
-      `;
+      Sorry, command "/imagine" is enabled in Soton Bot.`;
       return ctx.reply(
         text,
         Markup.inlineKeyboard([
           Markup.button.url(
-            "Add to group",
-            `https://telegram.me/${TonBot}?startgroup=true`
+            "Open Soton Bot",
+            // "https://telegram.me/SotonTestBot?start=open"
+            `https://telegram.me/${TonBot}`
           ),
         ])
       );
