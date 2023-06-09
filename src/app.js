@@ -444,6 +444,12 @@ And try again after bound.
       await ctx.answerCallbackQuery({
         text: "Please open TWA to mint",
       });
+      const author = await ctx.getAuthor();
+      const twaUrl = `${TonWebApp}?tid=${author.user.id}`;
+      return ctx.reply(
+        'Click "Soton" to complete mint process',
+        Markup.keyboard([Markup.button.webApp("Soton", twaUrl)])
+      );
     }
   });
 
