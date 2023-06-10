@@ -402,3 +402,13 @@ export const vote = async (params) => {
   const url = `${API_HOST}/proposal/vote`;
   return await httpRequest({ url, params, type: "POST" });
 };
+
+// {
+//   "gid": "",
+//   "uid": "",
+//   "info": ""
+// }
+export const queue = async (params) => {
+  const url = `${API_HOST}/v1/queue`;
+  return await httpRequest({ url, params, type: "POST" });
+};

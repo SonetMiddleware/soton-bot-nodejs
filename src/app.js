@@ -26,6 +26,7 @@ import {
   getTelegramNFTVoteStats,
   getProposalList,
   httpRequest,
+  queue,
 } from "./api/index.js";
 import handleCommandStats from "./commands/stats.js";
 import handleCommandProposals from "./commands/proposals.js";
@@ -409,7 +410,7 @@ And try again after bound.
   bot.command("proposals", handleCommandProposals);
 
   bot.on("callback_query", async (ctx) => {
-    console.log(ctx.update.callback_query);
+    console.log("callback_query", ctx.update.callback_query);
     const query = ctx.update.callback_query;
     const callbackData = query.data;
     if (callbackData.startsWith("soton_vote")) {
@@ -441,11 +442,31 @@ And try again after bound.
       await handleNFTCallbackQuery(ctx, callbackQuery, "follow");
     } else if (callbackData === "mint_prompt") {
       //TODO save info to server
+      const chat = query.message.chat;
+      const user = query.from;
+      const photo = query.message.photo;
+      if (photo.length === 0) {
+        return ctx.reply("No photos");
+      }
+      const image = await getBotFile(photo[photo.length - 1].file_id);
+      const collection_contract = process.env.SD_MINT_COLLECTION_CONTRACT;
+      const nft_prefix = process.env.SD_MINT_NFT_PREFIX;
+      const params = {
+        gid: chat.id,
+        uid: user.id,
+        info: JSON.stringify({
+          image,
+          prompt: query.message.caption,
+          collection_contract,
+          nft_prefix,
+        }),
+      };
+      await queue(params);
       await ctx.answerCallbackQuery({
         text: "Please open TWA to mint",
       });
       const author = await ctx.getAuthor();
-      const twaUrl = `${TonWebApp}?tid=${author.user.id}`;
+      const twaUrl = `${TonWebApp}?tid=${author.user.id}&gid=${chat.id}`;
       return ctx.reply(
         'Click "Soton" to complete mint process',
         Markup.keyboard([Markup.button.webApp("Soton", twaUrl)])
@@ -456,7 +477,7 @@ And try again after bound.
   bot.on("message", async (ctx) => {
     // console.log("updated message: ", ctx.update.message);
 
-    // console.log("msg: ", ctx.message);
+    console.log("msg: ", ctx.message);
     // await ctx.answerCallbackQuery();
     if (ctx.message.reply_to_message) {
       const msg = ctx.message.reply_to_message.text;
