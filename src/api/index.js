@@ -409,6 +409,13 @@ export const vote = async (params) => {
 //   "info": ""
 // }
 export const queue = async (params) => {
-  const url = `${API_HOST}/v1/queue`;
-  return await httpRequest({ url, params, type: "POST" });
+  try {
+    const url = `${API_HOST}/queue`;
+    console.log("[queue params] ", params);
+    const res = await httpRequest({ url, params, type: "POST" });
+    console.log("[queue res] ", res);
+    return res;
+  } catch (e) {
+    console.log("[queue error]", e);
+  }
 };

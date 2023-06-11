@@ -97,19 +97,35 @@ const saveBase64ToFile = async (base64Str, fileName) => {
   });
 };
 
+const handleCallbackFailed = async (data) => {
+  const botToken = process.env.BOT_TOKEN;
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+  return axios.request({
+    url,
+    method: "POST",
+    data: {
+      chat_id: data.chat_id,
+      text: "AI generates failed. Please try later.",
+      reply_to_message_id: data.message_id,
+    },
+  });
+};
+
 app.post("/api/sdCallback", upload.single("image"), async (req, res) => {
   // const fileName = `${Date.now}.png`;
   // const filePath = path.resolve(process.cwd(), fileName);
+  const botToken = process.env.BOT_TOKEN;
   const { originalname, filename, path } = req.file;
-
+  let callbackData;
   try {
     const { prompt, extra } = req.body;
     let extraJson = JSON.parse(extra);
     if (typeof extraJson === "string") {
       extraJson = JSON.parse(extraJson);
     }
-    console.log(extraJson);
-    console.log(originalname, filename, path);
+    callbackData = extraJson;
+    // console.log(extraJson);
+    // console.log(originalname, filename, path);
     // await saveBase64ToFile(image, fileName);
     const form = new FormData();
     // Create a form and append image with additional fields
@@ -131,7 +147,6 @@ app.post("/api/sdCallback", upload.single("image"), async (req, res) => {
     form.append("reply_markup", reply_markup);
     // Send form data with axios
 
-    const botToken = process.env.BOT_TOKEN;
     const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
     const response = await axios.request({
       url,
@@ -148,6 +163,9 @@ app.post("/api/sdCallback", upload.single("image"), async (req, res) => {
     // });
   } catch (e) {
     console.log(e);
+    if (callbackData) {
+      handleCallbackFailed(callbackData);
+    }
     res.json(e);
   } finally {
     fs.unlinkSync(path);

@@ -293,6 +293,7 @@ And try again after bound.
     }
     const author = await ctx.getAuthor();
     const text = IMAGINE_TEXT;
+    await ctx.reply("Processing...");
     return ctx.reply(text + ` @${author.user.username}`, {
       reply_markup: {
         force_reply: true,
@@ -445,6 +446,7 @@ And try again after bound.
       const chat = query.message.chat;
       const user = query.from;
       const photo = query.message.photo;
+      const message_id = query.message.message_id;
       if (photo.length === 0) {
         return ctx.reply("No photos");
       }
@@ -455,10 +457,13 @@ And try again after bound.
         gid: chat.id,
         uid: user.id,
         info: JSON.stringify({
+          gid: chat.id,
+          uid: user.id,
           image,
           prompt: query.message.caption,
           collection_contract,
           nft_prefix,
+          message_id,
         }),
       };
       await queue(params);
@@ -467,6 +472,21 @@ And try again after bound.
       });
       const author = await ctx.getAuthor();
       const twaUrl = `${TonWebApp}?tid=${author.user.id}&gid=${chat.id}`;
+      const markup = {
+        inline_keyboard: [
+          [
+            Markup.button.url(
+              "Open Soton to complete mint",
+              `https://telegram.me/${TonBot}?startgroup=true`
+            ),
+          ],
+        ],
+      };
+      return await ctx.editMessageReplyMarkup({
+        chat_id: chat.id,
+        message_id: message_id,
+        reply_markup: markup,
+      });
       return ctx.reply(
         'Click "Soton" to complete mint process',
         Markup.keyboard([Markup.button.webApp("Soton", twaUrl)])
