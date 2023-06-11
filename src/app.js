@@ -474,12 +474,7 @@ And try again after bound.
       const twaUrl = `${TonWebApp}?tid=${author.user.id}&gid=${chat.id}`;
       const markup = {
         inline_keyboard: [
-          [
-            Markup.button.url(
-              "Open Soton to complete mint",
-              `https://telegram.me/${TonBot}?startgroup=true`
-            ),
-          ],
+          [Markup.button.webApp("Open Soton to complete mint", twaUrl)],
         ],
       };
       return await ctx.editMessageReplyMarkup({
