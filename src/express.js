@@ -155,7 +155,7 @@ app.post("/api/sdCallback", upload.single("image"), async (req, res) => {
       data: form,
     });
 
-    console.log(response.data);
+    // console.log(response.data);
     // delete temp img
     res.json(response.data);
     // form.on("close", () => {

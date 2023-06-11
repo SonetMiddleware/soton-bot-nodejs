@@ -27,6 +27,7 @@ import {
   getProposalList,
   httpRequest,
   queue,
+  getGroupInviteLink,
 } from "./api/index.js";
 import handleCommandStats from "./commands/stats.js";
 import handleCommandProposals from "./commands/proposals.js";
@@ -171,7 +172,7 @@ async function runApp() {
   });
 
   bot.command("chat_info", async (ctx) => {
-    console.log(ctx.chat);
+    // console.log(ctx.chat);
     if (ctx.chat.type === "private") return;
     const daoId = ctx.chat.id;
     const daos = await getDaoWithGroupId(daoId);
@@ -182,7 +183,7 @@ async function runApp() {
       collectionId: "",
       adminId: "",
     };
-    console.log(daos);
+    // console.log(daos);
     if (daos && daos.data && daos.data) {
       const data = daos.data;
       response.daoId = data.id;
@@ -291,10 +292,18 @@ And try again after bound.
         ])
       );
     }
+    await ctx.reply("Processing...");
     const author = await ctx.getAuthor();
     const text = IMAGINE_TEXT;
-    await ctx.reply("Processing...");
-    return ctx.reply(text + ` @${author.user.username}`, {
+    const daoId = process.env.SD_MINT_DAO;
+    const daos = await getDaoWithGroupId(daoId);
+    const inviteLink = await getGroupInviteLink(daoId);
+    let dao;
+    if (daos && daos.data) {
+      dao = daos.data;
+    }
+    const respText = `${text}.\nYou can mint the image to NFT and join ${dao.name} afterwards.`;
+    return ctx.reply(respText + ` @${author.user.username}`, {
       reply_markup: {
         force_reply: true,
         selective: true,
@@ -518,6 +527,7 @@ And try again after bound.
       } else if (msg.includes(IMAGINE_TEXT) && text) {
         // handle imagine reply
         // call sd server
+        await ctx.reply("Processing...");
         const chat = ctx.message.chat;
         const user = ctx.message.from;
         const params = {
@@ -540,8 +550,8 @@ And try again after bound.
             Token: process.env.SD_SERVER_TOKEN,
           },
         });
-        console.log(res);
-        console.log(params);
+        // console.log(res);
+        // console.log(params);
       }
     }
     if (ctx.message.web_app_data) {
