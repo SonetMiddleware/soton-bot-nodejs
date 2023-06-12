@@ -462,6 +462,7 @@ And try again after bound.
       const image = await getBotFile(photo[photo.length - 1].file_id);
       const collection_contract = process.env.SD_MINT_COLLECTION_CONTRACT;
       const nft_prefix = process.env.SD_MINT_NFT_PREFIX;
+      const daoId = process.env.SD_MINT_DAO;
       const params = {
         gid: chat.id,
         uid: user.id,
@@ -473,6 +474,7 @@ And try again after bound.
           collection_contract,
           nft_prefix,
           message_id,
+          daoId,
         }),
       };
       await queue(params);
