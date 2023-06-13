@@ -459,7 +459,8 @@ And try again after bound.
       if (photo.length === 0) {
         return ctx.reply("No photos");
       }
-      const image = await getBotFile(photo[photo.length - 1].file_id);
+      const fileId = photo[photo.length - 1].file_id;
+      const image = await getBotFile(fileId);
       const collection_contract = process.env.SD_MINT_COLLECTION_CONTRACT;
       const nft_prefix = process.env.SD_MINT_NFT_PREFIX;
       const daoId = process.env.SD_MINT_DAO;
@@ -470,6 +471,7 @@ And try again after bound.
           gid: chat.id,
           uid: user.id,
           image,
+          fileId,
           prompt: query.message.caption,
           collection_contract,
           nft_prefix,
