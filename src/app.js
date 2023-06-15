@@ -45,7 +45,6 @@ import * as fs from "fs";
 import * as path from "path";
 
 import axios from "axios";
-import { Readable } from "stream";
 const port = process.env.PORT || 3000;
 const TonWebApp = process.env.TON_WEB_APP || "https://twa.soton.sonet.one";
 const TonBot = process.env.TON_BOT;
