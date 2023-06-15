@@ -124,8 +124,8 @@ app.post("/api/sdCallback", upload.single("image"), async (req, res) => {
       extraJson = JSON.parse(extraJson);
     }
     callbackData = extraJson;
-    // console.log(extraJson);
-    // console.log(originalname, filename, path);
+    console.log(extraJson);
+    console.log('sdCallback: ',originalname, filename, path);
     // await saveBase64ToFile(image, fileName);
     const form = new FormData();
     // Create a form and append image with additional fields
