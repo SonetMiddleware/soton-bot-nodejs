@@ -553,7 +553,7 @@ And try again after bound.
             Token: process.env.SD_SERVER_TOKEN,
           },
         });
-        console.log('[sd response] ',res);
+        console.log("[sd response] ", res?.data);
         // console.log(params);
       }
     }
