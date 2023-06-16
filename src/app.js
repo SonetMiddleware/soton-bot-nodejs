@@ -353,10 +353,10 @@ And try again after bound.
                 text: `Dislike(${stats.unlike})`,
                 callback_data: "dislike",
               },
-              {
-                text: `Follow(${stats.follow})`,
-                callback_data: "follow",
-              },
+              // {
+              //   text: `Follow(${stats.follow})`,
+              //   callback_data: "follow",
+              // },
             ],
           ],
         };
