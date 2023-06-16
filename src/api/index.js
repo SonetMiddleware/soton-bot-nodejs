@@ -108,6 +108,15 @@ export const getDaoWithGroupId = async (id) => {
   return res;
 };
 
+export const getDaoWithDaoId = async (id) => {
+  const url = `${API_HOST}/dao/${id}`;
+  const params = {};
+  const res = await httpRequest({ url, params, type: "GET" });
+  console.debug("getDaoWithGroupId: ", id, res);
+  if (res.error) return false;
+  return res;
+};
+
 export const bind1WithWeb3Proof = async (params) => {
   const url = `${API_HOST}/bind-addr`;
   const res = await httpRequest({ url, params, type: "POST" });
@@ -184,9 +193,10 @@ export const createDao = async (params) => {
     chain_name: CHAIN_NAME,
     contract: params.contract,
     collection_name: params.chat_name,
-    collection_id:  CHAIN_NAME+'_' + params.contract, //params.chat_id,
+    collection_id: params.contract, //params.chat_id,
+    dao_id: params.chat_id,
     collection_image: params.logo,
-    dao_name: params.chat_id + '_' +  params.chat_name,
+    dao_name: params.chat_name,
     creator: params.creator,
     start_date: Date.now(),
     total_member: params.member,
@@ -400,6 +410,7 @@ export const getProposalList = async (params) => {
         items: p.items,
         results: p.results,
         voteType: p.voter_type,
+        dao_id: p.dao_id
       });
     }
   }
