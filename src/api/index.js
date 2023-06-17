@@ -139,6 +139,7 @@ export const createProposal = async (params) => {
     creator,
     snapshotBlock,
     daoId,
+    collectionId,
     title,
     description,
     startTime,
@@ -152,7 +153,8 @@ export const createProposal = async (params) => {
   const data = {
     creator,
     snapshot_block: snapshotBlock,
-    collection_id: daoId,
+    collection_id: collectionId,
+    dao_id: daoId,
     title,
     description,
     start_time: startTime,
@@ -193,7 +195,7 @@ export const createDao = async (params) => {
     chain_name: CHAIN_NAME,
     contract: params.contract,
     collection_name: params.chat_name,
-    collection_id: params.contract, //params.chat_id,
+    collection_id: CHAIN_NAME + "_" + params.contract, //params.chat_id,
     dao_id: params.chat_id,
     collection_image: params.logo,
     dao_name: params.chat_name,
@@ -410,7 +412,7 @@ export const getProposalList = async (params) => {
         items: p.items,
         results: p.results,
         voteType: p.voter_type,
-        dao_id: p.dao_id
+        dao_id: p.dao_id,
       });
     }
   }
