@@ -148,19 +148,25 @@ async function runApp() {
       return ctx.reply(
         text,
         Markup.inlineKeyboard([
-          Markup.button.url(
-            "View proposals",
-            `${TonWebApp}/web/proposals?dao=${daoId}`
-          ),
-          Markup.button.url(
-            "Vote with soton bot",
-            // "https://telegram.me/SotonTestBot?start=open"
-            `https://telegram.me/${TonBot}`
-          ),
-          Markup.button.url(
-            "Go to market",
-            `${process.env.MARKET_COLLECTION}/${daos.data.contract}`
-          ),
+          [
+            Markup.button.url(
+              "View proposals",
+              `${TonWebApp}/web/proposals?dao=${daoId}`
+            ),
+          ],
+          [
+            Markup.button.url(
+              "Vote with soton bot",
+              // "https://telegram.me/SotonTestBot?start=open"
+              `https://telegram.me/${TonBot}`
+            ),
+          ],
+          [
+            Markup.button.url(
+              "Go to market",
+              `${process.env.MARKET_COLLECTION}/${daos.data.contract}`
+            ),
+          ],
           // Markup.button.url("Soton", `${process.env.TWA_URL}`),
         ])
       );
