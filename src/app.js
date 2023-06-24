@@ -144,6 +144,8 @@ async function runApp() {
     const daos = await getDaoWithGroupId(daoId);
     // console.log("daos: ", daos);
     if (daos && daos.data && daos.data.dao) {
+      const twaUrl = `${TonWebApp}?tid=${author.user.id}&gid=${chat.id}`;
+
       const text = `Thanks for using Soton Bot. I'm enabling NFT DAO to this group. Please review the proposals for this group DAO, and feel free to join the DAO and provide your opinion.`;
       return ctx.reply(
         text,
@@ -352,11 +354,11 @@ And try again after bound.
           inline_keyboard: [
             [
               {
-                text: `Like(${stats.like})`,
+                text: `👍(${stats.like})`,
                 callback_data: "like",
               },
               {
-                text: `Dislike(${stats.unlike})`,
+                text: `👎(${stats.unlike})`,
                 callback_data: "dislike",
               },
               // {
