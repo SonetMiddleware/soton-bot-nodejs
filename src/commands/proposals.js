@@ -60,7 +60,8 @@ const handleCommandProposals = async (ctx) => {
         `https://telegram.me/${TonBot}`
       ),
     ]);
-    return ctx.reply("Top5 Proposals: ", Markup.inlineKeyboard(buttons));
+    // return ctx.reply("Top5 Proposals: ", Markup.inlineKeyboard(buttons));
+    return ctx.reply("Proposals: ", Markup.inlineKeyboard(buttons));
   }
 };
 
