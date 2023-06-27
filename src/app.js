@@ -18,7 +18,6 @@ import {
   vote,
   unbind,
   createDao,
-  getDaoWithGroupId,
   getBindResult,
   getBotFile,
   getGroupMemberNumber,
@@ -28,6 +27,7 @@ import {
   httpRequest,
   queue,
   getGroupInviteLink,
+  getDaoWithDaoId
 } from "./api/index.js";
 import handleCommandStats from "./commands/stats.js";
 import handleCommandProposals from "./commands/proposals.js";
@@ -141,7 +141,7 @@ async function runApp() {
 
     //群聊
     const daoId = ctx.chat.id;
-    const daos = await getDaoWithGroupId(daoId);
+    const daos = await getDaoWithDaoId(daoId);
     // console.log("daos: ", daos);
     if (daos && daos.data && daos.data.dao) {
       const twaUrl = `${TonWebApp}?tid=${author.user.id}&gid=${chat.id}`;
@@ -182,7 +182,7 @@ async function runApp() {
     // console.log(ctx.chat);
     if (ctx.chat.type === "private") return;
     const daoId = ctx.chat.id;
-    const daos = await getDaoWithGroupId(daoId);
+    const daos = await getDaoWithDaoId(daoId);
     const response = {
       chatId: ctx.chat.id,
       chatName: ctx.chat.title,
@@ -262,7 +262,7 @@ And try again after bound.
     }
 
     const daoId = ctx.chat.id;
-    const daos = await getDaoWithGroupId(daoId);
+    const daos = await getDaoWithDaoId(daoId);
     if (daos && daos.data && daos.data.dao) {
       const text =
         `Sorry, the DAO has been created. Please feel free to review and join us with command "/start". ` +
@@ -303,7 +303,7 @@ And try again after bound.
     const author = await ctx.getAuthor();
     const text = IMAGINE_TEXT;
     const daoId = process.env.SD_MINT_DAO;
-    const daos = await getDaoWithGroupId(daoId);
+    const daos = await getDaoWithDaoId(daoId);
     const inviteLink = await getGroupInviteLink(daoId);
     let dao;
     if (daos && daos.data) {
@@ -323,7 +323,7 @@ And try again after bound.
       const message = callbackQuery.message;
       const caption = message.caption;
       const daoId = ctx.chat.id;
-      const daos = await getDaoWithGroupId(daoId);
+      const daos = await getDaoWithDaoId(daoId);
       let collection = "",
         nftId = "";
       if (daos && daos.data && daos.data.contract) {

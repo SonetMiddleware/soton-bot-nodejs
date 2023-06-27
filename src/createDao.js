@@ -1,7 +1,7 @@
 import {
   createDao,
   vote,
-  getDaoWithGroupId,
+  getDaoWithDaoId,
   getBindResult,
   getBotFile,
   getGroupMemberNumber,
@@ -22,7 +22,7 @@ export async function createDaoConversation(conversation, ctx) {
     console.log("path: ", path);
     logo = path;
   }
-  const daos = await getDaoWithGroupId(ctx.chat.id);
+  const daos = await getDaoWithDaoId(ctx.chat.id);
   if (daos && daos.data && daos.data.dao) {
     return ctx.reply(
       'Sorry, the DAO has been created. Please feel free to review and join us with command "/start".'
