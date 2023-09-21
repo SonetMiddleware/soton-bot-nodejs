@@ -425,6 +425,9 @@ And try again after bound.
 
   bot.command("stats", handleCommandStats);
   bot.command("proposals", handleCommandProposals);
+  bot.command("game", async (ctx) => {
+    return ctx.reply(`https://t.me/${TonBot}/battle`);
+  });
 
   bot.on("callback_query", async (ctx) => {
     console.log("callback_query", ctx.update.callback_query);
