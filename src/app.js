@@ -107,7 +107,7 @@ async function runApp() {
       const binds = await getBounds(author.user.id);
 
       const text = `
-      Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them. 
+      Thanks for initiating Soton and integrating DAO & NFT functionalities to this chat. You can take part in all enabling DAOs based on your TON NFTs via Soton Webapp. Or, you can add me to your chat group(s), with admin role, to enable NFT DAO for them.
       `;
       const buttons = [
         Markup.button.url(
@@ -228,7 +228,7 @@ Please add me to your chat groups, with group admin role,  and use "create_dao" 
     // The group type should be supergroup or needs set to public
     const chat = await ctx.getChat();
     if (chat.type === "group") {
-      return ctx.reply(`Please set your group to public first. 
+      return ctx.reply(`Please set your group to public first.
 Press the group's name and click the pencil icon or "edit" button. Tap the "Group Type" and select "Public Group."`);
     }
     //群聊
@@ -245,8 +245,8 @@ Press the group's name and click the pencil icon or "edit" button. Tap the "Grou
 
     const hasBound = await isBound(author.user.id);
     if (hasBound) {
-      const text = `Please bind your TON wallet with your Telegram account first, 
-via, Open Soton Bot > use "start" command > Click 'Soton' Button. 
+      const text = `Please bind your TON wallet with your Telegram account first,
+via, Open Soton Bot > use "start" command > Click 'Soton' Button.
 And try again after bound.
   @${author.user.username}`;
       return ctx.reply(
@@ -427,6 +427,42 @@ And try again after bound.
   bot.command("proposals", handleCommandProposals);
   bot.command("game", async (ctx) => {
     return ctx.reply(`https://t.me/${TonBot}/battle`);
+  });
+  bot.command("score", async (ctx) => {
+    const chat = ctx.chat;
+    if (chat.type !== "private") {
+      const text = `Sorry, command "/score" is enabled in private chat of Soton Bot only.`;
+      return ctx.reply(text);
+    }
+    const author = await ctx.getAuthor();
+    const binds = await getBounds(author.user.id);
+    if(binds.length < 1 || !binds[0]) {
+      const text = `Please open "Soton" web app to bind you Telegram account with your Ton wallet.`;
+      return ctx.reply(text);
+    }
+    const url = 'https://show-svc.meta4d.me:4439/SelectUserCurrency';
+    const params = { playerName: author.user.id };
+    let score = 0;
+    try {
+      const res = await axios.request({
+        url,
+        method: "POST",
+        data: params,
+        headers: {
+          "Content-Type": "application/json"
+        },
+      });
+      if (res.error) {
+        const text = `Sorry, cannot fetch your game score. Please retry later.`;
+        return ctx.reply(text);
+      }
+      score = res.data.data.results.integral
+    } catch (e) {
+    }
+    const text = `
+Your Soton game score is: ${score}.
+Use /game to get more.`;
+    return ctx.reply(text);
   });
 
   bot.on("callback_query", async (ctx) => {
